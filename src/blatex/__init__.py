@@ -2,8 +2,9 @@ import click
 import zipfile
 from pathlib import Path
 
-# TODO install this to a better place
-templatedir = Path("~/Projects/blatex/templates").expanduser()
+import pkg_resources
+
+templatedir = Path(pkg_resources.resource_filename("blatex", "templates"))
 
 def choose_template():
     templates = [[f.stem, f] for f in templatedir.iterdir()]
@@ -30,7 +31,6 @@ def copy_template(templatefile: Path | str, destination: Path | str):
     with zipfile.ZipFile(templatefile, mode="r") as archive:
          archive.extractall(destination)
 
-# @click.option('-d', '--dir', required=False, type=click.Path(exists=True), help="The dir to initialize the project in.")
 
 @click.command("init")
 @click.option('-t', '--template', "template", help="Name of the templates to use.")
@@ -38,10 +38,13 @@ def copy_template(templatefile: Path | str, destination: Path | str):
 def blatex_init(template, directory):
     """Command for initializing a latex project"""
 
-    if not template in [t.stem for t in templatedir.iterdir()]:
+    if template in [t.stem for t in templatedir.iterdir()]:
+        template = templatedir / f"{template}.zip"
+    else:
         if template:
             click.echo(f"There is no template with the name {template!r}.\n")
         template = choose_template()
+    
     
     if not directory:
         directory = Path.cwd()
@@ -60,6 +63,7 @@ def blatex_list():
     pass
 
 blatex_list.add_command(list_templates)
+    
 
 @click.group()
 def blatex():
