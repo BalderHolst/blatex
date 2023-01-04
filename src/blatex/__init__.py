@@ -4,6 +4,9 @@ from pathlib import Path
 
 import pkg_resources
 
+import shutil
+import os
+
 templatedir = Path(pkg_resources.resource_filename("blatex", "templates"))
 
 def choose_template():
@@ -31,11 +34,30 @@ def copy_template(templatefile: Path | str, destination: Path | str):
     with zipfile.ZipFile(templatefile, mode="r") as archive:
          archive.extractall(destination)
 
+def has_git():
+    if shutil.which("git"):
+        return(True)
+    return(False)
 
+# TODO test on windows
+def init_git_repo(directory: Path):
+    if not has_git():
+        return
+    
+    click.echo("\nInitialising Git Repo:")
+    git = f"git -C {str(directory)!r}"
+    os.system(f"{git} init")
+    os.system(f"{git} add {str(directory)!r}")
+    os.system(f"{git} commit -a -m 'blatex init'")
+    
+
+
+# ====================================== INTERFACE ====================================== 
 @click.command("init")
 @click.option('-t', '--template', "template", help="Name of the templates to use.")
 @click.option('-d', '--dir', 'directory', type=click.Path(exists=True), help="Directory to initialize latex project in.")
-def blatex_init(template, directory):
+@click.option('--no-git', is_flag=True, default=False, help="If set: does not create a git repo in the project directory.")
+def blatex_init(template, directory, no_git):
     """Command for initializing a latex project"""
 
     if template in [t.stem for t in templatedir.iterdir()]:
@@ -48,8 +70,14 @@ def blatex_init(template, directory):
     
     if not directory:
         directory = Path.cwd()
+    if not isinstance(directory, Path):
+        directory = Path(directory)
 
     copy_template(template, directory)
+
+    if not no_git:
+        init_git_repo(directory)
+
 
 @click.command("templates")
 def list_templates():
@@ -73,8 +101,3 @@ def blatex():
 
 blatex.add_command(blatex_init)
 blatex.add_command(blatex_list)
-
-
-if __name__ == "__main__":
-    blatex_init()
-
