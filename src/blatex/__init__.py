@@ -56,7 +56,11 @@ def init_git_repo(directory: Path):
 
 
 # ====================================== INTERFACE ====================================== 
-@click.command("init")
+
+CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
+
+
+@click.command("init", context_settings=CONTEXT_SETTINGS)
 @click.option('-t', '--template', "template", help="Name of the templates to use.")
 @click.option('-d', '--dir', 'directory', type=click.Path(exists=True), help="Directory to initialize latex project in.")
 @click.option('--no-git', is_flag=True, default=False, help="If set: does not create a git repo in the project directory.")
@@ -82,13 +86,13 @@ def blatex_init(template, directory, no_git):
         init_git_repo(directory)
 
 
-@click.command("templates")
+@click.command("templates", context_settings=CONTEXT_SETTINGS)
 def list_templates():
     """List available templates"""
     for template in templatedir.iterdir():
         click.echo(template.stem)
 
-@click.group("list")
+@click.group("list", context_settings=CONTEXT_SETTINGS)
 def blatex_list():
     """Group of commands to list things in blatex"""
     pass
@@ -96,7 +100,7 @@ def blatex_list():
 blatex_list.add_command(list_templates)
     
 
-@click.group()
+@click.group(context_settings=CONTEXT_SETTINGS)
 def blatex():
     """Cli for managing latex projects"""
     pass
