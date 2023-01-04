@@ -61,7 +61,7 @@ def add_config_file(directory: Path, verbose=False):
 
     if config_file_name in directory.iterdir():
         if verbose:
-            click.echo("Using template configuration file.")
+            click.echo(f"No need to initialize {config_file_name!r} as it already exists.")
         return
 
     if verbose:
@@ -69,6 +69,8 @@ def add_config_file(directory: Path, verbose=False):
 
     config_file = Path(pkg_resources.resource_filename("blatex", "resources/config.json"))
     shutil.copy(config_file, f"{directory}/{config_file_name}")
+
+    click.echo(f"Added config file {config_file_name!r} to the root dir.")
 
 
 def has_git():
@@ -101,6 +103,18 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 def blatex_init(template, directory, no_git):
     """Command for initializing a latex project"""
 
+    if not directory:
+        directory = Path.cwd()
+    if not isinstance(directory, Path):
+        directory = Path(directory)
+
+    if len(list(directory.iterdir())) > 0:
+        if (directory / config_file_name).exists():
+            click.echo("Nothing to do.")
+            return
+        add_config_file(directory)
+        return
+
     if template in [t.stem for t in templatedir.iterdir()]:
         template = templatedir / f"{template}.zip"
     else:
@@ -108,12 +122,6 @@ def blatex_init(template, directory, no_git):
             click.echo(f"There is no template with the name {template!r}.\n")
         template = choose_template()
     
-    
-    if not directory:
-        directory = Path.cwd()
-    if not isinstance(directory, Path):
-        directory = Path(directory)
-
     copy_template(template, directory)
 
     add_config_file(directory)
