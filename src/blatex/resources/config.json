@@ -1,6 +1,6 @@
 {
-    "main_tex_file": [
-        "main.tex",
-        "src.tex"
-    ]
+    "main-file": "main.tex",
+    "main-file-placeholder": "<main-file>",
+    "compile-cmd": "latexmk -pdf -bibtex-cond -interaction=nonstopmode -cd <main-file>",
+    "clean-cmd": "latexmk -c -cd <main-file>"
 }

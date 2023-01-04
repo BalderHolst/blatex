@@ -8,9 +8,29 @@ import json
 import shutil
 import subprocess
 
+config_file_name = ".blatex"
 
-config = json.load(pkg_resources.resource_stream("blatex", 'resources/config.json'))
 templatedir = Path(pkg_resources.resource_filename("blatex", "resources/templates"))
+
+def find_root_dir(current_directory: Path | None = None, i: int = 0) -> Path:
+    if i > 100:
+        raise RecursionError(f"Reached max iteration looking for the root dir. The root dir is defined af containing a {config_file_name!r} file.")
+    if current_directory == None:
+        current_directory = Path.cwd()
+    if config_file_name in [f.name for f in current_directory.iterdir()]:
+        return(current_directory)
+    return(find_root_dir(current_directory.parent, i + 1))
+    
+
+def get_configs():
+    return(json.load(open(find_root_dir() / config_file_name)))
+
+def get_cmd(cmd_name):
+    configs = get_configs()
+
+    cmd = configs[cmd_name].replace(configs['main-file-placeholder'], str(find_root_dir() / configs['main-file']))
+
+    return(cmd)
 
 def choose_template():
     templates = [[f.stem, f] for f in templatedir.iterdir()]
@@ -36,6 +56,20 @@ def choose_template():
 def copy_template(templatefile: Path | str, destination: Path | str):
     with zipfile.ZipFile(templatefile, mode="r") as archive:
          archive.extractall(destination)
+
+def add_config_file(directory: Path, verbose=False):
+
+    if config_file_name in directory.iterdir():
+        if verbose:
+            click.echo("Using template configuration file.")
+        return
+
+    if verbose:
+        click.echo("Using default configuration file.")
+
+    config_file = Path(pkg_resources.resource_filename("blatex", "resources/config.json"))
+    shutil.copy(config_file, f"{directory}/{config_file_name}")
+
 
 def has_git():
     if shutil.which("git"):
@@ -82,6 +116,8 @@ def blatex_init(template, directory, no_git):
 
     copy_template(template, directory)
 
+    add_config_file(directory)
+
     if not no_git:
         init_git_repo(directory)
 
@@ -98,6 +134,33 @@ def blatex_list():
     pass
 
 blatex_list.add_command(list_templates)
+
+@click.command("compile", context_settings=CONTEXT_SETTINGS)
+@click.option('-v', '--verbose', is_flag=True, help='Be verbose.')
+def compile(verbose=False):
+    """
+    Compile the document as specified by the config file.
+
+    The config file '.blatex' can be found in the root directory next to the main .tex file.
+    """
+    cmd = get_cmd('compile-cmd')
+
+    if verbose:
+        click.echo(f"Running: {cmd!r}")
+
+    subprocess.run(cmd.split(" "))
+
+@click.command("clean", context_settings=CONTEXT_SETTINGS)
+@click.option('-v', '--verbose', is_flag=True, help='Be verbose.')
+def clean(verbose=False):
+    """Clean temporary files from root directory."""
+
+    cmd = get_cmd("clean-cmd")
+
+    if verbose:
+        click.echo(f"Running: {cmd!r}")
+
+    subprocess.run(cmd.split(" "))
     
 
 @click.group(context_settings=CONTEXT_SETTINGS)
@@ -107,4 +170,6 @@ def blatex():
 
 
 blatex.add_command(blatex_init)
+blatex.add_command(compile)
+blatex.add_command(clean)
 blatex.add_command(blatex_list)
