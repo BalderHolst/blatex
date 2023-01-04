@@ -6,7 +6,7 @@ import pkg_resources
 import json
 
 import shutil
-import os
+import subprocess
 
 
 config = json.load(pkg_resources.resource_stream("blatex", 'resources/config.json'))
@@ -49,9 +49,9 @@ def init_git_repo(directory: Path):
     
     click.echo("\nInitialising Git Repo:")
     git = f"git -C {str(directory)!r}"
-    os.system(f"{git} init")
-    os.system(f"{git} add {str(directory)!r}")
-    os.system(f"{git} commit -a -m 'blatex init'")
+    subprocess.run(f"{git} init", shell=True)
+    subprocess.run(f"{git} add {str(directory)!r}", shell=True)
+    subprocess.run(f"{git} commit -a -m 'blatex init'", shell=True)
     
 
 
