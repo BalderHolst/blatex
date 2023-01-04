@@ -13,11 +13,13 @@ setup(
     long_description = description,
     long_description_content_type = "text/markdown",
     package_dir={'': 'src'},
-    package_data={"blatex": ["templates/*"]},
+    package_data={"blatex": [
+        "resources/templates/*",
+        "resources/config.json"
+        ]},
     python_requires = ">=3.7",
     install_requires = [
         "click",
-        "zipfile",
         "pathlib"
         ],
     entry_points = {

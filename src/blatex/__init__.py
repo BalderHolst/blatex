@@ -3,11 +3,14 @@ import zipfile
 from pathlib import Path
 
 import pkg_resources
+import json
 
 import shutil
 import os
 
-templatedir = Path(pkg_resources.resource_filename("blatex", "templates"))
+
+config = json.load(pkg_resources.resource_stream("blatex", 'resources/config.json'))
+templatedir = Path(pkg_resources.resource_filename("blatex", "resources/templates"))
 
 def choose_template():
     templates = [[f.stem, f] for f in templatedir.iterdir()]
