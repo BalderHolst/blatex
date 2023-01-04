@@ -138,7 +138,7 @@ def list_templates():
 
 @click.group("list", context_settings=CONTEXT_SETTINGS)
 def blatex_list():
-    """Group of commands to list things in blatex"""
+    """Commands to list things in blatex"""
     pass
 
 blatex_list.add_command(list_templates)
