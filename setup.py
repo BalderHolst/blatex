@@ -16,7 +16,9 @@ setup(
     package_data={"blatex": ["templates/*"]},
     python_requires = ">=3.7",
     install_requires = [
-        "click"
+        "click",
+        "zipfile",
+        "pathlib"
         ],
     entry_points = {
         'console_scripts': ['blatex=blatex:blatex']
