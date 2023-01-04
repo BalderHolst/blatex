@@ -9,7 +9,7 @@ setup(
     author = "Balder Holst",
     author_email = "balderwh@gmail.com",
     packages = ["blatex"],
-    description = "Cli tool for managing latex projects.",
+    description = "Simple cli tool for managing latex projects",
     long_description = description,
     long_description_content_type = "text/markdown",
     package_dir={'': 'src'},
@@ -17,12 +17,14 @@ setup(
         "resources/templates/*",
         "resources/config.json"
         ]},
-    python_requires = ">=3.7",
     install_requires = [
         "click",
         "pathlib"
         ],
     entry_points = {
         'console_scripts': ['blatex=blatex:blatex']
-        }
+        },
+    python_requires = ">=3.7",
+    url = "https://github.com/BalderHolst/blatex",
+    license = "MIT",
 )
