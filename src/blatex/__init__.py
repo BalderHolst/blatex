@@ -131,7 +131,7 @@ def blatex_init(template, directory, no_git):
 
 
 @click.command("templates", context_settings=CONTEXT_SETTINGS)
-def list_templates():
+def blatex_list_templates():
     """List available templates"""
     for template in templatedir.iterdir():
         click.echo(template.stem)
@@ -141,11 +141,11 @@ def blatex_list():
     """Commands to list things in blatex"""
     pass
 
-blatex_list.add_command(list_templates)
+blatex_list.add_command(blatex_list_templates)
 
 @click.command("compile", context_settings=CONTEXT_SETTINGS)
 @click.option('-v', '--verbose', is_flag=True, help='Be verbose.')
-def compile(verbose=False):
+def blatex_compile(verbose=False):
     """
     Compile the document as specified by the config file.
 
@@ -160,7 +160,7 @@ def compile(verbose=False):
 
 @click.command("clean", context_settings=CONTEXT_SETTINGS)
 @click.option('-v', '--verbose', is_flag=True, help='Be verbose.')
-def clean(verbose=False):
+def blatex_clean(verbose=False):
     """Clean temporary files from root directory."""
 
     cmd = get_cmd("clean-cmd")
@@ -178,6 +178,6 @@ def blatex():
 
 
 blatex.add_command(blatex_init)
-blatex.add_command(compile)
-blatex.add_command(clean)
+blatex.add_command(blatex_compile)
+blatex.add_command(blatex_clean)
 blatex.add_command(blatex_list)
