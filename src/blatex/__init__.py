@@ -8,27 +8,29 @@ import json
 import shutil
 import subprocess
 
+from blatex.log_parser import *
+
 config_file_name = ".blatex"
 
 templatedir = Path(pkg_resources.resource_filename("blatex", "resources/templates"))
 
-def find_root_dir(current_directory: Path | None = None, i: int = 0) -> Path:
+def get_root_dir(current_directory: Path | None = None, i: int = 0) -> Path:
     if i > 100:
         raise RecursionError(f"Reached max iteration looking for the root dir. The root dir is defined af containing a {config_file_name!r} file.")
     if current_directory == None:
         current_directory = Path.cwd()
     if config_file_name in [f.name for f in current_directory.iterdir()]:
         return(current_directory)
-    return(find_root_dir(current_directory.parent, i + 1))
+    return(get_root_dir(current_directory.parent, i + 1))
     
 
 def get_configs():
-    return(json.load(open(find_root_dir() / config_file_name)))
+    return(json.load(open(get_root_dir() / config_file_name)))
 
 def get_cmd(cmd_name):
     configs = get_configs()
 
-    cmd = configs[cmd_name].replace(configs['main-file-placeholder'], str(find_root_dir() / configs['main-file']))
+    cmd = configs[cmd_name].replace(configs['main-file-placeholder'], str(get_root_dir() / configs['main-file']))
 
     return(cmd)
 
@@ -88,7 +90,17 @@ def init_git_repo(directory: Path):
     subprocess.run(f"{git} init", shell=True)
     subprocess.run(f"{git} add {str(directory)!r}", shell=True)
     subprocess.run(f"{git} commit -a -m 'blatex init'", shell=True)
-    
+
+
+
+def echo_feedback():
+    log_file = get_root_dir() / (Path(get_configs()['main-file']).stem + ".log")
+
+    if not log_file.exists():
+        click.echo("No log file found.")
+        return
+
+    click.echo(parse_log_file(log_file))
 
 
 # ====================================== INTERFACE ====================================== 
@@ -136,12 +148,18 @@ def blatex_list_templates():
     for template in templatedir.iterdir():
         click.echo(template.stem)
 
+@click.command("errors", context_settings=CONTEXT_SETTINGS)
+def blatex_list_feedback():
+    """List errors and warnings from last time the document was compiled."""
+    echo_feedback()
+
 @click.group("list", context_settings=CONTEXT_SETTINGS)
 def blatex_list():
     """Commands to list things in blatex"""
     pass
 
 blatex_list.add_command(blatex_list_templates)
+blatex_list.add_command(blatex_list_feedback)
 
 @click.command("compile", context_settings=CONTEXT_SETTINGS)
 @click.option('-v', '--verbose', is_flag=True, help='Be verbose.')
