@@ -37,7 +37,7 @@ def get_cmd(cmd_name):
 def choose_template():
     templates = [[f.stem, f] for f in templatedir.iterdir()]
 
-    print("Choose a template:")
+    click.echo("Choose a template:")
     for n, template in enumerate(templates):
         click.echo("\t" + str(n) + ": " + str(template[0]))
 
