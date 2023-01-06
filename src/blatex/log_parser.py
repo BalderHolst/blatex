@@ -2,6 +2,8 @@ from os import stat
 from pathlib import Path
 import re
 
+import click
+
 class Error():
     def __init__(self, message, trace) -> None:
         self.message = message
@@ -40,12 +42,7 @@ def is_path(line):
         return True
     return False
 
-
-def get_error_message(lines):
-    MAX_EMPTY_LINES = 2
-
-    text = "\n".join(lines)
-
+def clean_error_text(text):
     # Remove interactive prompt.
     text = re.sub("See the LaTeX manual or LaTeX Companion for explanation.\nType  H <return>  for immediate help.\n ... ", "", text)
 
@@ -53,7 +50,20 @@ def get_error_message(lines):
     text = re.sub(r"([^\.])\s+({.+)\n", r"\1\2\n\n", text)
 
     # fix 80 horizontal char limit
-    text = re.sub(r"([a-z ])\n([a-z ])", r"\1\2", text)
+    text = re.sub(r"([a-z ,])\n([a-z ,])", r"\1\2", text)
+
+    # Make all newlines after "." double
+    text = re.sub(r"\.\n\s*\n", r".\n", text)
+    text = re.sub(r"\.\s*(\n|\r)", r".\n\n", text)
+
+    return(text)
+
+def get_error_message(lines):
+    MAX_EMPTY_LINES = 2
+
+    text = "\n".join(lines)
+
+    text = clean_error_text(text)
 
     error_lines = []
 
@@ -74,18 +84,12 @@ def get_error_message(lines):
 
 
 def get_package_error_message(lines):
-    MAX_EMPTY_LINES = 2
+
+    MAX_EMPTY_LINES = 4
 
     text = "\n".join(lines)
 
-    # Remove interactive prompt.
-    text = re.sub("See the \\w+ package documentation for explanation.\nType  H <return>  for immediate help.\n ...\\s+", "", text)
-
-    # fix strange newline
-    text = re.sub(r"([^\.])\s+({.+)\n", r"\1\2\n\n", text)
-
-    # fix 80 horizontal char limit
-    text = re.sub(r"([a-z ])\n([a-z ])", r"\1\2", text)
+    text = clean_error_text(text)
 
     error_lines = []
 
@@ -107,8 +111,8 @@ def get_package_error_message(lines):
 def get_warning_message(text):
     raise NotImplementedError()
 
-def print_with_level(line, level):
-    print("".join(["|   " for _ in range(level)]) + line)
+def echo_with_level(line, level):
+    click.echo("".join(["|   " for _ in range(level)]) + line)
     
 def extract_file(line):
     m = re.search(r"(\.?(/[^/]+)+$)", line)
@@ -116,7 +120,7 @@ def extract_file(line):
         return(m.group())
     return(line)
 
-def parse_log_file(log_file: Path):
+def parse_log_file(log_file: Path, echo_logs = False):
 
     log = log_file.read_text()#.replace("(", "\n(\n").replace(")", "\n)\n")
 
@@ -142,15 +146,15 @@ def parse_log_file(log_file: Path):
         m = re.search(r"! Package ([^/]+) Error: ", line)
         if m:
             error_name = m.group(1)
-            lines = get_package_error_message(lines[n:n+SEARCH_LINES])
+            error_lines = get_package_error_message(lines[n:n+SEARCH_LINES])
 
-            errors.append(PackageError(error_name, lines, stack.copy()))
+            errors.append(PackageError(error_name, "\n".join(error_lines), stack.copy()))
 
         # Detect errors
         m = re.search("! LaTeX Error:", line)
         if m:
-            lines = get_error_message(lines[n:n+SEARCH_LINES])
-            errors.append(Error(lines, stack.copy()))
+            error_lines = get_error_message(lines[n:n+SEARCH_LINES])
+            errors.append(Error("\n".join(error_lines), stack.copy()))
 
         # TODO detect warnings
 
@@ -162,9 +166,10 @@ def parse_log_file(log_file: Path):
                         trace=stack.copy()
                         ))
 
-        print_with_level(line, len(stack))
+        if echo_logs:
+            echo_with_level(line, len(stack))
 
 
 
-    print(errors)
+    return(errors)
 

@@ -92,15 +92,47 @@ def init_git_repo(directory: Path):
     subprocess.run(f"{git} commit -a -m 'blatex init'", shell=True)
 
 
+def echo_trace(trace):
+    prev_length = 0
+    for n, file in enumerate(trace):
+        click.echo("    " * max(0, n - 1) + "┗━━━" * min(1, n) + file)
 
-def echo_feedback():
+def echo_errors(echo_logs = False):
+
+    WIDTH = 70
+
     log_file = get_root_dir() / (Path(get_configs()['main-file']).stem + ".log")
 
     if not log_file.exists():
         click.echo("No log file found.")
         return
 
-    click.echo(parse_log_file(log_file))
+    errors = parse_log_file(log_file, echo_logs=echo_logs)
+
+    for error in errors:
+        if isinstance(error, PackageError):
+            click.echo((f" Package Error: {error.package_name} ").center(WIDTH, "="))
+            click.echo(error.message + "\n")
+            echo_trace(error.trace)
+        elif isinstance(error, HboxWarning):
+            click.echo(f" Hbox Warning: {error.type} ".center(WIDTH, "="))
+            click.echo(error.message + "\n")
+            echo_trace(error.trace)
+        elif isinstance(error, Error):
+            click.echo(" LaTeX Error ".center(WIDTH, "="))
+            click.echo(error.message + "\n")
+            echo_trace(error.trace)
+        elif isinstance(error, Warning):
+            click.echo(" Warning ".center(WIDTH, "="))
+            click.echo(error.message + "\n")
+            echo_trace(error.trace)
+        else:
+            click.echo(error)
+
+        click.echo()
+
+    # click.echo("=" * WIDTH)
+    # click.echo(f"For more details, run blatex list errors --log, or check the {str(log_file.relative_to(Path.cwd()))!r} file manually.")
 
 
 # ====================================== INTERFACE ====================================== 
@@ -149,9 +181,10 @@ def blatex_list_templates():
         click.echo(template.stem)
 
 @click.command("errors", context_settings=CONTEXT_SETTINGS)
-def blatex_list_feedback():
+@click.option("--log", is_flag=True, help="Stylishly print the log file.")
+def blatex_list_errors(log):
     """List errors and warnings from last time the document was compiled."""
-    echo_feedback()
+    echo_errors(echo_logs=log)
 
 @click.group("list", context_settings=CONTEXT_SETTINGS)
 def blatex_list():
@@ -159,7 +192,7 @@ def blatex_list():
     pass
 
 blatex_list.add_command(blatex_list_templates)
-blatex_list.add_command(blatex_list_feedback)
+blatex_list.add_command(blatex_list_errors)
 
 @click.command("compile", context_settings=CONTEXT_SETTINGS)
 @click.option('-v', '--verbose', is_flag=True, help='Be verbose.')
