@@ -5,11 +5,11 @@ with open("README.md", "r") as f:
 
 setup(
     name = "blatex",
-    version = '0.0.0',
+    version = '0.0.1',
     author = "Balder Holst",
     author_email = "balderwh@gmail.com",
     packages = ["blatex"],
-    description = "Simple cli tool for managing latex projects",
+    description = "Simple cli tool for managing latex projects.",
     long_description = description,
     long_description_content_type = "text/markdown",
     package_dir={'': 'src'},
@@ -18,6 +18,7 @@ setup(
         "resources/config.json"
         ]},
     install_requires = [
+        "termcolor",
         "click",
         "pathlib"
         ],
