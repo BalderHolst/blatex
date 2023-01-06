@@ -155,7 +155,7 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 @click.option('-d', '--dir', 'directory', type=click.Path(exists=True), help="Directory to initialize latex project in.")
 @click.option('--git', is_flag=True, default=False, help="Initialize git repo in the root directory.")
 def blatex_init(template, directory, git):
-    """Command for initializing a latex project"""
+    """Initialize a latex project"""
 
     if not directory:
         directory = Path.cwd()
