@@ -5,6 +5,7 @@ from pathlib import Path
 
 import pkg_resources
 import json
+import re
 
 import shutil
 import subprocess
@@ -75,6 +76,33 @@ def add_config_file(directory: Path, verbose=False):
 
     click.echo(f"Added config file {config_file_name!r} to the root dir.")
 
+def get_installed_packages(search_dir = None):
+    packages = []
+    if not search_dir:
+        search_dir = Path("/usr/share/texlive/texmf-dist/tex/latex")
+    for file in search_dir.iterdir():
+        if re.search(r".+\.sty", file.name):
+            packages.append(file.stem)
+        elif file.is_dir():
+            packages.extend(get_installed_packages(file))
+    return(packages)
+
+def find_packages_in_file(file: Path):
+    try:
+        return(re.findall(r"usepackage{(\w+)}", file.read_text()))
+    except UnicodeDecodeError:
+        return []
+
+def get_used_packages(directory=None):
+    packages = []
+    if not directory:
+        directory = Path.cwd()
+    for file in directory.iterdir():
+        if file.is_file():
+            packages.extend(find_packages_in_file(file))
+        elif file.is_dir():
+            packages.extend(get_used_packages(file))
+    return(list(set(packages)))
 
 def has_git():
     if shutil.which("git"):
@@ -169,7 +197,36 @@ def blatex_list_errors(log, no_color):
     """List errors and warnings from last time the document was compiled."""
     echo_errors(echo_logs=log, color=not no_color)
 
-# TODO list packages
+@click.command("packages", context_settings=CONTEXT_SETTINGS)
+@click.option("--no-color", "no_color", is_flag=True, help="Disable colored output.")
+@click.option("--needed", is_flag=True, help="List only packages that are not installed.")
+def blatex_list_packages(no_color, needed):
+    """List packages used in the project"""
+    installed_packages = get_installed_packages()
+    used_packages = get_used_packages()
+    
+    used_packages.sort()
+
+    for package in used_packages:
+        if package in installed_packages:
+            if needed:
+                continue
+            if not no_color:
+                click.echo(colored(f"{package} [INSTALLED]", "green"))
+            else:
+                click.echo(f"{package} [INSTALLED]")
+        else:
+            if not no_color:
+                click.echo(colored(package, "red"))
+            else:
+                click.echo(package)
+
+@click.command("installed-packages", context_settings=CONTEXT_SETTINGS)
+def blatex_list_installed_packages():
+    """List installed packages"""
+    for package in get_installed_packages():
+        click.echo(package)
+
 @click.group("list", context_settings=CONTEXT_SETTINGS)
 def blatex_list():
     """Commands to list things in blatex"""
@@ -177,6 +234,8 @@ def blatex_list():
 
 blatex_list.add_command(blatex_list_templates)
 blatex_list.add_command(blatex_list_errors)
+blatex_list.add_command(blatex_list_packages)
+blatex_list.add_command(blatex_list_installed_packages)
 
 @click.command("compile", context_settings=CONTEXT_SETTINGS)
 @click.option('-v', '--verbose', is_flag=True, help='Be verbose.')
