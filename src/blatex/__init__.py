@@ -96,7 +96,7 @@ def find_packages_in_file(file: Path):
 def get_used_packages(directory=None):
     packages = []
     if not directory:
-        directory = Path.cwd()
+        directory = get_root_dir()
     for file in directory.iterdir():
         if file.is_file():
             packages.extend(find_packages_in_file(file))
