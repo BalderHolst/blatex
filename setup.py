@@ -15,7 +15,8 @@ setup(
     package_dir={'': 'src'},
     package_data={"blatex": [
         "resources/templates/*",
-        "resources/config.json"
+        "resources/default-local-config.json",
+        "resources/default-global-config.json"
         ]},
     install_requires = [
         "termcolor",

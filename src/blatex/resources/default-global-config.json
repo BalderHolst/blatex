@@ -1,0 +1,4 @@
+{
+	"enable_builtin_templates": true,
+	"custom_template_dir": "~/.config/blatex/templates"
+}

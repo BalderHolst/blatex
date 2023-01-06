@@ -26,6 +26,8 @@ def get_root_dir(current_directory: Path | None = None, i: int = 0) -> Path:
     return(get_root_dir(current_directory.parent, i + 1))
     
 
+
+
 def get_configs():
     return(json.load(open(get_root_dir() / config_file_name)))
 
@@ -71,7 +73,7 @@ def add_config_file(directory: Path, verbose=False):
     if verbose:
         click.echo("Using default configuration file.")
 
-    config_file = Path(pkg_resources.resource_filename("blatex", "resources/config.json"))
+    config_file = Path(pkg_resources.resource_filename("blatex", "resources/default-local-config.json"))
     shutil.copy(config_file, f"{directory}/{config_file_name}")
 
     click.echo(f"Added config file {config_file_name!r} to the root dir.")
@@ -132,6 +134,12 @@ def echo_errors(echo_logs = False, color=True):
         return
 
     (warnings, errors) = parse_log_file(log_file, echo_logs=echo_logs)
+
+    if len(errors) == 0 and len(warnings) == 0:
+        if color:
+            click.echo(colored("Finished with no errors!", "green"))
+        else:
+            click.echo("Finished with no errors!")
 
     for warning in warnings:
         warning.echo(color=color)
@@ -237,6 +245,43 @@ blatex_list.add_command(blatex_list_errors)
 blatex_list.add_command(blatex_list_packages)
 blatex_list.add_command(blatex_list_installed_packages)
 
+@click.command("create", context_settings=CONTEXT_SETTINGS)
+@click.option("-f", "--force", is_flag=True, help="Override current configuration.")
+def blatex_config_global_create(force):
+    """Create default config file ̈́in '~/.config/blatex'."""
+    config_dir = Path("~/.config/blatex").expanduser()
+
+    if not config_dir.exists():
+        config_dir.mkdir()
+
+    config_file = config_dir / "config.json"
+
+    if config_file.exists() and not force:
+        click.echo(f"{str(config_file)!r} already exists.")
+        return
+
+    default_config_file = Path(pkg_resources.resource_filename("blatex", "resources/default-global-config.json"))
+
+    shutil.copy(default_config_file, config_file)
+
+    templates_dir = (config_dir / "templates") # TODO get from config
+
+    if not templates_dir.exists():
+        templates_dir.mkdir()
+
+@click.group("global", context_settings=CONTEXT_SETTINGS)
+def blatex_config_global():
+    pass
+
+blatex_config_global.add_command(blatex_config_global_create)
+
+@click.group("config", context_settings=CONTEXT_SETTINGS)
+def blatex_config():
+    """Commands for configuration"""
+    pass
+
+blatex_config.add_command(blatex_config_global)
+
 @click.command("compile", context_settings=CONTEXT_SETTINGS)
 @click.option('-v', '--verbose', is_flag=True, help='Be verbose.')
 def blatex_compile(verbose=False):
@@ -278,3 +323,4 @@ blatex.add_command(blatex_init)
 blatex.add_command(blatex_compile)
 blatex.add_command(blatex_clean)
 blatex.add_command(blatex_list)
+blatex.add_command(blatex_config)
