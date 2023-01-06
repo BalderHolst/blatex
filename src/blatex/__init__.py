@@ -1,4 +1,5 @@
 import click
+
 import zipfile
 from pathlib import Path
 
@@ -92,14 +93,9 @@ def init_git_repo(directory: Path):
     subprocess.run(f"{git} commit -a -m 'blatex init'", shell=True)
 
 
-def echo_trace(trace):
-    prev_length = 0
-    for n, file in enumerate(trace):
-        click.echo("    " * max(0, n - 1) + "┗━━━" * min(1, n) + file)
 
-def echo_errors(echo_logs = False):
+def echo_errors(echo_logs = False, color=True):
 
-    WIDTH = 70
 
     log_file = get_root_dir() / (Path(get_configs()['main-file']).stem + ".log")
 
@@ -107,28 +103,14 @@ def echo_errors(echo_logs = False):
         click.echo("No log file found.")
         return
 
-    errors = parse_log_file(log_file, echo_logs=echo_logs)
+    (warnings, errors) = parse_log_file(log_file, echo_logs=echo_logs)
+
+    for warning in warnings:
+        warning.echo(color=color)
+        click.echo()
 
     for error in errors:
-        if isinstance(error, PackageError):
-            click.echo((f" Package Error: {error.package_name} ").center(WIDTH, "="))
-            click.echo(error.message + "\n")
-            echo_trace(error.trace)
-        elif isinstance(error, HboxWarning):
-            click.echo(f" Hbox Warning: {error.type} ".center(WIDTH, "="))
-            click.echo(error.message + "\n")
-            echo_trace(error.trace)
-        elif isinstance(error, Error):
-            click.echo(" LaTeX Error ".center(WIDTH, "="))
-            click.echo(error.message + "\n")
-            echo_trace(error.trace)
-        elif isinstance(error, Warning):
-            click.echo(" Warning ".center(WIDTH, "="))
-            click.echo(error.message + "\n")
-            echo_trace(error.trace)
-        else:
-            click.echo(error)
-
+        error.echo(color=color)
         click.echo()
 
     # click.echo("=" * WIDTH)
@@ -182,10 +164,12 @@ def blatex_list_templates():
 
 @click.command("errors", context_settings=CONTEXT_SETTINGS)
 @click.option("--log", is_flag=True, help="Stylishly print the log file.")
-def blatex_list_errors(log):
+@click.option("--no-color", "no_color", is_flag=True, help="Disable colored output.")
+def blatex_list_errors(log, no_color):
     """List errors and warnings from last time the document was compiled."""
-    echo_errors(echo_logs=log)
+    echo_errors(echo_logs=log, color=not no_color)
 
+# TODO list packages
 @click.group("list", context_settings=CONTEXT_SETTINGS)
 def blatex_list():
     """Commands to list things in blatex"""
@@ -208,6 +192,9 @@ def blatex_compile(verbose=False):
         click.echo(f"Running: {cmd!r}")
 
     subprocess.run(cmd.split(" "))
+
+    click.echo("\n\n")
+    echo_errors()
 
 @click.command("clean", context_settings=CONTEXT_SETTINGS)
 @click.option('-v', '--verbose', is_flag=True, help='Be verbose.')

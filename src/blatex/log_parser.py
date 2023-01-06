@@ -4,10 +4,31 @@ import re
 
 import click
 
+from termcolor import colored
+
+WIDTH = 70
+
+def echo_trace(trace, color=True):
+    if color:
+        for n, file in enumerate(trace):
+            click.echo(colored("    " * max(0, n - 1) + "┗━━━" * min(1, n) + file, "blue"))
+    else:
+        for n, file in enumerate(trace):
+            click.echo("    " * max(0, n - 1) + "┗━━━" * min(1, n) + file)
+
 class Error():
     def __init__(self, message, trace) -> None:
         self.message = message
         self.trace = trace
+
+    def echo(self, color=True):
+        title = " LaTeX Error ".center(WIDTH, "=")
+        if color:
+            click.echo(colored(title, "red"))
+        else:
+            click.echo(title)
+        click.echo(self.message + "\n")
+        echo_trace(self.trace, color=color)
 
     def __repr__(self) -> str:
         return f"Error({self.trace})"
@@ -17,6 +38,15 @@ class PackageError(Error):
         super().__init__(message, trace)
         self.package_name = package_name
 
+    def echo(self, color=True):
+        title = f" Package Error: {self.package_name} ".center(WIDTH, "=")
+        if color:
+            click.echo(colored(title, "red"))
+        else:
+            click.echo(title)
+        click.echo(self.message + "\n")
+        echo_trace(self.trace, color=color)
+
     def __repr__(self) -> str:
         return f"PackageError({self.package_name!r}, {self.trace})"
 
@@ -25,6 +55,15 @@ class Warning():
         self.message = message
         self.trace = trace
 
+    def echo(self, color=True):
+        title = " Warning ".center(WIDTH, "=")
+        if color:
+            click.echo(colored(title, "yellow"))
+        else:
+            click.echo(title)
+        click.echo(self.message + "\n")
+        echo_trace(self.trace, color=color)
+
     def __repr__(self) -> str:
         return f"Warning({self.trace})"
 
@@ -32,6 +71,15 @@ class HboxWarning(Warning):
     def __init__(self, type, message, trace) -> None:
         super().__init__(message, trace)
         self.type = type
+
+    def echo(self, color=True):
+        title = f" Hbox Warning: {self.type} ".center(WIDTH, "=")
+        if color:
+            click.echo(colored(title, "yellow"))
+        else:
+            click.echo(title)
+        click.echo(self.message + "\n")
+        echo_trace(self.trace, color=color)
 
     def __repr__(self) -> str:
         return f"HboxWarning({self.type}, {self.trace})"
@@ -130,6 +178,7 @@ def parse_log_file(log_file: Path, echo_logs = False):
     stack = []
 
     errors = []
+    warnings = []
 
     for n, line in enumerate(lines):
 
@@ -160,7 +209,7 @@ def parse_log_file(log_file: Path, echo_logs = False):
 
         m = re.search(r"(Overfull|Underfull) \\hbox", line)
         if m:
-            errors.append(HboxWarning(
+            warnings.append(HboxWarning(
                         type=f"{m.group(1)}",
                         message=line,
                         trace=stack.copy()
@@ -171,5 +220,5 @@ def parse_log_file(log_file: Path, echo_logs = False):
 
 
 
-    return(errors)
+    return((warnings, errors))
 
