@@ -18,7 +18,8 @@ templatedir = Path(pkg_resources.resource_filename("blatex", "resources/template
 
 def get_root_dir(current_directory: Path | None = None, i: int = 0) -> Path:
     if i > 100:
-        raise RecursionError(f"Reached max iteration looking for the root dir. The root dir is defined af containing a {config_file_name!r} file.")
+        click.echo("Not inside initialized latex project. Initialize the current directory with `blatex init`.")
+        exit()
     if current_directory == None:
         current_directory = Path.cwd()
     if config_file_name in [f.name for f in current_directory.iterdir()]:
