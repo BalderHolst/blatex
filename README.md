@@ -2,11 +2,11 @@
 This is a cli tool for managing latex templates. 
 
 ### Features
-- Initialize latex document with templates
-- Compiling from any sub-directory of the project with a simple command: `blatex compile`
-- Cleaning temporary files from any sub-directory with `blatex clean`
-- List packages used by the document, and mark if they are installed
-- Parse errors, and display them nicely - THIS IS NOT FULLY DONE
+- `blatex init` : Initialize latex document with templates
+- `blatex compile` : Compiling from any sub-directory of the project.
+- `blatex clean` : Clean temporary files from any sub-directory.
+- `blatex list packages` : List packages used by the document, and mark if they are installed
+- `blatex list errors` : Parse errors and warnings, and display them nicely - THIS IS NOT FULLY DONE
 
 # Dependencies
 The default latex engine is [latexmk](https://mg.readthedocs.io/latexmk.html). This can however be altered by editing the commands in the '.blatex' file in the root directory (this file is generated when initializin the project).
@@ -32,3 +32,5 @@ Compile the document by running this command from any sub-directory of the proje
 ```bash
 blatex compile
 ```
+
+All features of every command or command group can be found by passin the '--help' flag.
