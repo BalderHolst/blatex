@@ -9,6 +9,7 @@ import re
 
 import shutil
 import subprocess
+import os
 
 from blatex.log_parser import *
 
@@ -35,7 +36,13 @@ def get_configs():
 def get_cmd(cmd_name):
     configs = get_configs()
 
-    cmd = configs[cmd_name].replace(configs['main-file-placeholder'], str(get_root_dir() / configs['main-file']))
+    cwd = Path.cwd()
+
+    os.chdir(get_root_dir())
+
+    cmd = configs[cmd_name].replace(configs['main-file-placeholder'], '"' + configs['main-file'] + '"') # TODO does not work with spaces
+
+    os.chdir(cwd)
 
     return(cmd)
 
