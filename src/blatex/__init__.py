@@ -13,83 +13,116 @@ import os
 
 from blatex.log_parser import *
 
-config_file_name = ".blatex"
+local_config_file_name = ".blatex"
 
-templatedir = Path(pkg_resources.resource_filename("blatex", "resources/templates"))
+builtin_template_dir = Path(pkg_resources.resource_filename("blatex", "resources/templates"))
 
 def get_root_dir(current_directory: Path | None = None, i: int = 0) -> Path:
     if i > 100:
         click.echo("Not inside initialized latex project. Initialize the current directory with `blatex init`.")
-        exit()
+        exit(1)
     if current_directory == None:
         current_directory = Path.cwd()
-    if config_file_name in [f.name for f in current_directory.iterdir()]:
+    if local_config_file_name in [f.name for f in current_directory.iterdir()]:
         return(current_directory)
     return(get_root_dir(current_directory.parent, i + 1))
     
 
+def get_global_config(config: str):
+    """Return the global config. This looks in '~/.config/blatex/config.json' for user specific configuration."""
 
+    user_config_file = Path("~/.config/blatex/config.json").expanduser()
 
-def get_configs():
-    return(json.load(open(get_root_dir() / config_file_name)))
+    if user_config_file.exists():
+        user_config = json.load(user_config_file.open())
+
+        if config in user_config:
+            return(user_config[config])
+
+    default_config = json.load(open(pkg_resources.resource_filename("blatex", "resources/default-global-config.json")))
+
+    return(default_config[config])
+
+def get_local_config(config: str):
+    local_config_file = get_root_dir() / local_config_file_name
+    return(json.load(local_config_file.open())[config])
 
 def get_cmd(cmd_name):
-    configs = get_configs()
-
     cwd = Path.cwd()
 
     os.chdir(get_root_dir())
 
-    cmd = configs[cmd_name].replace(configs['main-file-placeholder'], '"' + configs['main-file'] + '"') # TODO does not work with spaces
+    cmd = get_local_config(cmd_name).replace(get_local_config('main-file-placeholder'), '"' + get_local_config('main-file') + '"') # TODO does not work with spaces
 
     os.chdir(cwd)
 
     return(cmd)
 
+def get_templates():
+
+    templates = []
+
+    if get_global_config('enable_builtin_templates'):
+        templates.extend(list(builtin_template_dir.iterdir()))
+
+    for d in get_global_config('custom_template_dirs'):
+        d = Path(d).expanduser()
+        if not d.exists():
+            click.echo(f"Templates directory: {str(d)!r} does not exist.")
+        templates.extend(list(d.iterdir()))
+
+    return(templates)
+
+
 def choose_template():
-    templates = [[f.stem, f] for f in templatedir.iterdir()]
+    templates = get_templates()
 
     click.echo("Choose a template:")
     for n, template in enumerate(templates):
-        click.echo("\t" + str(n) + ": " + str(template[0]))
+        click.echo("\t" + str(n) + ": " + template.stem)
 
     while True:
-        nr = click.prompt("Template index: ")
+        nr = click.prompt("Template index")
         try:
             nr = int(nr)
         except ValueError:
-            click.echo(f"{nr!r} is not a valus template index.")
+            click.echo(f"{nr!r} is not a value template index.\n")
             continue
         if nr < len(templates) and nr >= 0:
             break
-        click.echo(f"You must input a number between 0 and {len(templates) - 1}")
+        click.echo(f"You must input a number between 0 and {len(templates) - 1}\n")
 
-    return(templates[nr][1])
+    return(templates[nr])
 
         
 def copy_template(templatefile: Path | str, destination: Path | str):
+
+    if not re.search(r".+\.zip$", str(templatefile)):
+        click.echo(f"Template file {str(templatefile)!r} is not a valid template. It is not a '.zip' file.")
+        exit(1)
+
     with zipfile.ZipFile(templatefile, mode="r") as archive:
          archive.extractall(destination)
 
-def add_config_file(directory: Path, verbose=False):
+def add_local_config_file(directory: Path, verbose=False):
 
-    if config_file_name in directory.iterdir():
+    if local_config_file_name in directory.iterdir():
         if verbose:
-            click.echo(f"No need to initialize {config_file_name!r} as it already exists.")
+            click.echo(f"No need to initialize {local_config_file_name!r} as it already exists.")
         return
 
     if verbose:
         click.echo("Using default configuration file.")
 
     config_file = Path(pkg_resources.resource_filename("blatex", "resources/default-local-config.json"))
-    shutil.copy(config_file, f"{directory}/{config_file_name}")
+    shutil.copy(config_file, f"{directory}/{local_config_file_name}")
 
-    click.echo(f"Added config file {config_file_name!r} to the root dir.")
+    click.echo(f"Added config file {local_config_file_name!r} to the root dir.")
 
-def get_installed_packages(search_dir = None):
+def get_installed_packages(search_dir = None): # TODO return package-module tree
     packages = []
     if not search_dir:
-        search_dir = Path("/usr/share/texlive/texmf-dist/tex/latex")
+        search_dir = Path(get_global_config("package-install-location"))
     for file in search_dir.iterdir():
         if re.search(r".+\.sty", file.name):
             packages.append(file.stem)
@@ -135,7 +168,7 @@ def init_git_repo(directory: Path):
 def echo_errors(echo_logs = False, color=True):
 
 
-    log_file = get_root_dir() / (Path(get_configs()['main-file']).stem + ".log")
+    log_file = get_root_dir() / (Path(get_local_config('main-file')).stem + ".log")
 
     if not log_file.exists():
         click.echo("No log file found.")
@@ -178,32 +211,42 @@ def blatex_init(template, directory, git):
     if not isinstance(directory, Path):
         directory = Path(directory)
 
-    if len(list(directory.iterdir())) > 0:
-        if (directory / config_file_name).exists():
+    if len(list(directory.iterdir())) > 0: # is the directory is not empty
+        if (directory / local_config_file_name).exists():
             click.echo("Nothing to do.")
             return
-        add_config_file(directory)
+        add_local_config_file(directory)
         return
 
-    if template in [t.stem for t in templatedir.iterdir()]:
-        template = templatedir / f"{template}.zip"
+    templates = get_templates()
+    template_names = [t.stem for t in templates]
+
+    if template in template_names: # --template option 
+        template = templates[template_names.index(template)]
+    elif template: # Wrong --template option
+        click.echo(f"There is no template with the name {template!r}.")
+        exit(1)
     else:
-        if template:
-            click.echo(f"There is no template with the name {template!r}.\n")
         template = choose_template()
     
     copy_template(template, directory)
 
-    add_config_file(directory)
+    add_local_config_file(directory)
 
     if git:
         init_git_repo(directory)
 
 
 @click.command("templates", context_settings=CONTEXT_SETTINGS)
-def blatex_list_templates():
+@click.option("--full-path", "full_path", is_flag=True, help="Print the full path to the templates.")
+def blatex_list_templates(full_path):
     """List available templates"""
-    for template in templatedir.iterdir():
+    if full_path:
+        for template in get_templates():
+            click.echo(str(template))
+        return
+
+    for template in get_templates():
         click.echo(template.stem)
 
 @click.command("errors", context_settings=CONTEXT_SETTINGS)
@@ -215,7 +258,7 @@ def blatex_list_errors(log, no_color):
 
 @click.command("packages", context_settings=CONTEXT_SETTINGS)
 @click.option("--no-color", "no_color", is_flag=True, help="Disable colored output.")
-@click.option("--needed", is_flag=True, help="List only packages that are not installed.")
+@click.option("--needed", is_flag=True, help="List only packages that are not installed, but used in the document.")
 def blatex_list_packages(no_color, needed):
     """List packages used in the project"""
     installed_packages = get_installed_packages()
@@ -233,7 +276,10 @@ def blatex_list_packages(no_color, needed):
                 click.echo(f"{package} [INSTALLED]")
         else:
             if not no_color:
-                click.echo(colored(package, "red"))
+                if needed:
+                    click.echo(colored(f"{package}", "red"))
+                    continue
+                click.echo(colored(f"{package} [NOT INSTALLED]", "red"))
             else:
                 click.echo(package)
 
@@ -318,7 +364,7 @@ def blatex_clean(verbose=False):
     if verbose:
         click.echo(f"Running: {cmd!r}")
 
-    subprocess.run(cmd.split(" "))
+    subprocess.run(cmd.split(" ")) # TODO go to root first
     
 
 @click.group(context_settings=CONTEXT_SETTINGS)

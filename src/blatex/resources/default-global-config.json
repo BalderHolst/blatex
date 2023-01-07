@@ -1,4 +1,5 @@
 {
 	"enable_builtin_templates": true,
-	"custom_template_dir": "~/.config/blatex/templates"
+	"custom_template_dirs": ["~/.config/blatex/templates"],
+	"package-install-location": "/usr/share/texlive/texmf-dist/tex/latex"
 }
