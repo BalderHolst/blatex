@@ -67,13 +67,14 @@ class Warning():
     def __repr__(self) -> str:
         return f"Warning({self.trace})"
 
-class HboxWarning(Warning):
-    def __init__(self, type, message, trace) -> None:
+class BoxWarning(Warning):
+    def __init__(self, filling, boxtype, message, trace) -> None:
         super().__init__(message, trace)
-        self.type = type
+        self.filling = filling
+        self.boxtype = boxtype
 
     def echo(self, color=True):
-        title = f" Hbox Warning: {self.type} ".center(WIDTH, "=")
+        title = f" Box Warning: {self.filling} {self.boxtype.capitalize()} ".center(WIDTH, "=")
         if color:
             click.echo(colored(title, "yellow"))
         else:
@@ -82,7 +83,7 @@ class HboxWarning(Warning):
         echo_trace(self.trace, color=color)
 
     def __repr__(self) -> str:
-        return f"HboxWarning({self.type}, {self.trace})"
+        return f"BoxWarning({self.filling} {self.boxtype}, {self.trace})"
 
 def is_path(line):
     m = re.search(r"\.?(/[^\r\n]+)+\.\w+", line)
@@ -207,10 +208,16 @@ def parse_log_file(log_file: Path, echo_logs = False):
 
         # TODO detect warnings
 
-        m = re.search(r"(Overfull|Underfull) \\hbox", line)
+        m = re.search(r"^LaTeX Warning:", line)
         if m:
-            warnings.append(HboxWarning(
-                        type=f"{m.group(1)}",
+            warnings.append(Warning(line, stack.copy()))
+
+        # Hbox
+        m = re.search(r"(Overfull|Underfull) \\(hbox|vbox)", line)
+        if m:
+            warnings.append(BoxWarning(
+                        filling=m.group(1),
+                        boxtype=m.group(2),
                         message=line,
                         trace=stack.copy()
                         ))
