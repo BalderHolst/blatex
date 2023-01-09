@@ -5,7 +5,7 @@ with open("README.md", "r") as f:
 
 setup(
     name = "blatex",
-    version = '0.0.1',
+    version = '0.0.2',
     author = "Balder Holst",
     author_email = "balderwh@gmail.com",
     packages = ["blatex"],
