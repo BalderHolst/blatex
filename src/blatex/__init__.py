@@ -77,6 +77,7 @@ def get_templates():
         d = Path(d).expanduser()
         if not d.exists():
             click.echo(f"Templates directory: {str(d)!r} does not exist.")
+            continue
         templates.extend(list(d.iterdir()))
 
     return(templates)
