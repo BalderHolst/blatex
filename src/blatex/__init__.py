@@ -48,15 +48,23 @@ def get_local_config(config: str):
     return(json.load(local_config_file.open())[config])
 
 def get_cmd(cmd_name):
+
+
+    cmd = get_local_config(cmd_name).replace(get_local_config('main-file-placeholder'), '"' + get_local_config('main-file') + '"') # TODO does not work with spaces
+
+    return(cmd)
+
+def run_cmd(cmd, verbose=False):
     cwd = Path.cwd()
 
     os.chdir(get_root_dir())
 
-    cmd = get_local_config(cmd_name).replace(get_local_config('main-file-placeholder'), '"' + get_local_config('main-file') + '"') # TODO does not work with spaces
+    if verbose:
+        click.echo(f"Running: {cmd!r} from {str(Path.cwd())!r}.\n")
+
+    subprocess.run(cmd.split(" "))
 
     os.chdir(cwd)
-
-    return(cmd)
 
 def get_templates():
 
@@ -344,12 +352,10 @@ def blatex_compile(verbose=False):
 
     The config file '.blatex' can be found in the root directory next to the main .tex file.
     """
+
+
     cmd = get_cmd('compile-cmd')
-
-    if verbose:
-        click.echo(f"Running: {cmd!r}")
-
-    subprocess.run(cmd.split(" "))
+    run_cmd(cmd, verbose=verbose)
 
     click.echo("\n\n")
     echo_errors()
@@ -361,10 +367,7 @@ def blatex_clean(verbose=False):
 
     cmd = get_cmd("clean-cmd")
 
-    if verbose:
-        click.echo(f"Running: {cmd!r}")
-
-    subprocess.run(cmd.split(" ")) # TODO go to root first
+    run_cmd(cmd, verbose=verbose)
     
 
 @click.group(context_settings=CONTEXT_SETTINGS)

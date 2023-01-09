@@ -2,5 +2,5 @@
     "main-file": "main.tex",
     "main-file-placeholder": "<main-file>",
     "compile-cmd": "latexmk -pdf -bibtex-cond -shell-escape -interaction=nonstopmode <main-file>",
-    "clean-cmd": "latexmk -c -cd <main-file>"
+    "clean-cmd": "latexmk -c <main-file>"
 }
