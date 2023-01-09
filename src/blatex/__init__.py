@@ -66,7 +66,7 @@ def run_cmd(cmd, verbose=False):
 
     os.chdir(cwd)
 
-def get_templates():
+def get_templates(verbose=False):
 
     templates = []
 
@@ -76,15 +76,16 @@ def get_templates():
     for d in get_global_config('custom_template_dirs'):
         d = Path(d).expanduser()
         if not d.exists():
-            click.echo(f"Templates directory: {str(d)!r} does not exist.")
+            if verbose:
+                click.echo(f"Templates directory: {str(d)!r} does not exist.")
             continue
         templates.extend(list(d.iterdir()))
 
     return(templates)
 
 
-def choose_template():
-    templates = get_templates()
+def choose_template(verbose=False):
+    templates = get_templates(verbose=verbose)
 
     click.echo("Choose a template:")
     for n, template in enumerate(templates):
@@ -212,7 +213,8 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 @click.option('-t', '--template', "template", help="Name of the templates to use.")
 @click.option('-d', '--dir', 'directory', type=click.Path(exists=True), help="Directory to initialize latex project in.")
 @click.option('--git', is_flag=True, default=False, help="Initialize git repo in the root directory.")
-def blatex_init(template, directory, git):
+@click.option('-v', '--verbose', is_flag=True, help='Be verbose.')
+def blatex_init(template, directory, git, verbose):
     """Initialize a latex project"""
 
     if not directory:
@@ -227,7 +229,7 @@ def blatex_init(template, directory, git):
         add_local_config_file(directory)
         return
 
-    templates = get_templates()
+    templates = get_templates(verbose)
     template_names = [t.stem for t in templates]
 
     if template in template_names: # --template option 
