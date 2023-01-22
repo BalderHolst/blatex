@@ -171,7 +171,8 @@ def extract_file(line):
 
 def parse_log_file(log_file: Path, echo_logs = False):
 
-    log = log_file.read_text()#.replace("(", "\n(\n").replace(")", "\n)\n")
+    # TODO make this parse charecters like "æ"
+    log = log_file.read_text()
 
     lines = log.split("\n")
 
