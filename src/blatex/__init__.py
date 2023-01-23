@@ -21,7 +21,7 @@ def get_root_dir(current_directory: Path | None = None, i: int = 0) -> Path:
     if i > 100:
         click.echo("Not inside initialized latex project. Initialize the current directory with `blatex init`.")
         exit(1)
-    if current_directory == None:
+    if current_directory is None:
         current_directory = Path.cwd()
     if local_config_file_name in [f.name for f in current_directory.iterdir()]:
         return(current_directory)
