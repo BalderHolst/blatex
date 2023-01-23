@@ -45,6 +45,10 @@ with dnf_packages_list.open() as f:
 
 # dnf_packages = dnf_packages[100:103] # TODO REMOVE!
 
+if len(find_sty(install_location)) != 0:
+    print("Remove all texlive package before starting the program.")
+    quit(1)
+
 for n, dnf_package in enumerate(dnf_packages):
 
     if is_registered(dnf_package):
