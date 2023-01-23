@@ -171,8 +171,12 @@ def extract_file(line):
 
 def parse_log_file(log_file: Path, echo_logs = False):
 
-    # TODO make this parse charecters like "æ"
-    log = log_file.read_text()
+    try:
+        # TODO make this parse charecters like "æ"
+        log = log_file.read_text()
+    except UnicodeDecodeError as e:
+        print(colored(f"blatex: Error occured while parsing log file: {e}", "red"))
+        exit(1)
 
     lines = log.split("\n")
 
