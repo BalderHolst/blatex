@@ -349,7 +349,8 @@ blatex_config.add_command(blatex_config_global)
 
 @click.command("compile", context_settings=CONTEXT_SETTINGS)
 @click.option('-v', '--verbose', is_flag=True, help='Be verbose.')
-def blatex_compile(verbose=False):
+@click.option('-N', '--no-error-parse', "no_error_parse", is_flag=True, help='Do not parse errors from the log file after compilation.')
+def blatex_compile(verbose=False, no_error_parse = False):
     """
     Compile the document as specified by the config file.
 
@@ -360,8 +361,9 @@ def blatex_compile(verbose=False):
     cmd = get_cmd('compile-cmd')
     run_cmd(cmd, verbose=verbose)
 
-    click.echo("\n\n")
-    echo_errors()
+    if not no_error_parse:
+        click.echo("\n\n")
+        echo_errors()
 
 @click.command("clean", context_settings=CONTEXT_SETTINGS)
 @click.option('-v', '--verbose', is_flag=True, help='Be verbose.')
