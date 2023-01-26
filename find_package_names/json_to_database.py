@@ -7,56 +7,67 @@ db_file = Path("dnf.db")
 
 json_file = Path("./packages.json")
 
-if db_file.exists():
-    os.remove(db_file)
+def create_blank_database():
 
-db = Database(db_file, new=True)
+    if db_file.exists():
+        os.remove(db_file)
 
-db.create_table("dnf_packages", [
-        Column("id", "integer", primary_key=True),
-        Column("name", "string")
-    ])
+    db = Database(db_file, new=True)
 
-
-db.create_table("tex_packages", [
-        Column("id", "integer", primary_key=True),
-        Column("name", "string")
-    ])
+    db.create_table("dnf_packages", [
+            Column("id", "integer", primary_key=True),
+            Column("name", "string")
+        ])
 
 
-db.create_table("dnf_to_tex", [
-        Column("id", "integer", primary_key=True),
-        Column("dnf_package_id", "integer", foreign_key=ForeignKey("dnf_packages", "id")),
-        Column("tex_package_id", "integer", foreign_key=ForeignKey("tex_packages", "id"))
-    ])
-
-# db.overview()
+    db.create_table("tex_packages", [
+            Column("id", "integer", primary_key=True),
+            Column("name", "string")
+        ])
 
 
+    db.create_table("dnf_to_tex", [
+            Column("id", "integer", primary_key=True),
+            Column("dnf_package_id", "integer", foreign_key=ForeignKey("dnf_packages", "id")),
+            Column("tex_package_id", "integer", foreign_key=ForeignKey("tex_packages", "id"))
+        ])
 
-with json_file.open() as f:
-    scraped_data = json.load(f)
+    return db
 
-for n, (dnf_package, tex_packages) in enumerate(scraped_data.items()):
-    print(f"{dnf_package} : {n+1}/{len(scraped_data)}")
+def texpackage_in_database(db: Database, tex_package) -> int | None:
 
-    db.add_entry({"name": dnf_package}, "dnf_packages")
+    results = db.SELECT().FROM("tex_packages").WHERE("name", tex_package).run()
 
-    dnf_package_id = n + 1
+    if results:
+        return results[0]["id"]
+    return None
 
-    for i, tex_package in enumerate(tex_packages):
-        print(f"{dnf_package} : {n+1}/{len(scraped_data)} - {i+1}/{len(tex_packages)}")
+def json_to_database():
+    db = create_blank_database()
+
+    with json_file.open() as f:
+        scraped_data = json.load(f)
+
+    for n, (dnf_package, tex_packages) in enumerate(scraped_data.items()):
+        print(f"{n+1}/{len(scraped_data)} : {dnf_package}")
         
-        # TODO only do this if the package is not added
-        db.add_entry({"name": tex_package}, "tex_packages")
-        tex_package_id = len(db.get_table("tex_packages"))
+        dnf_package_id = db.add_entry({"name": dnf_package}, "dnf_packages")
 
-        db.add_entry({
-            "dnf_package_id": dnf_package_id, 
-            "tex_package_id": tex_package_id
-            }, "dnf_to_tex")
+        for i, tex_package in enumerate(tex_packages):
+            print(f"{n+1}/{len(scraped_data)} : {dnf_package} - {i+1}/{len(tex_packages)}")
+            
+            tex_package_id = texpackage_in_database(db, tex_package)
+
+            if not tex_package_id:
+                tex_package_id = db.add_entry({"name": tex_package}, "tex_packages")
+
+            db.add_entry({
+                "dnf_package_id": dnf_package_id, 
+                "tex_package_id": tex_package_id
+                }, "dnf_to_tex")
+
+    db.save()
 
 
-
-db.save()
-
+if __name__ == "__main__":
+    json_to_database()
