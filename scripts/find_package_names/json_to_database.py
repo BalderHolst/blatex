@@ -18,7 +18,9 @@ def create_blank_database():
 
     db.create_table("texlive_packages", [
             Column("id", "integer", primary_key=True),
-            Column("name", "string")
+            Column("name", "string"),
+            Column("nr_of_tex_packages", "int"),
+            Column("common", "bool", default_value=0)
         ])
 
 
@@ -46,15 +48,11 @@ def texpackage_in_database(db: Database, tex_package) -> int | None:
 
 def cash_tex_package_counts(db: Database):
     
-    cashe_col_name = "nr_of_tex_packages" 
-    if not "nr_of_tex_packages" in [col.name for col in db.get_table_cols("texlive_packages")]:
-        db.add_column("texlive_packages", Column("nr_of_tex_packages", "int"))
-    
     texlive_packages = db.get_table("texlive_packages")
 
     for n, texlive_package in enumerate(texlive_packages):
         print(f"Cashing tex packages for package ({n+1}/{len(texlive_packages)}) {texlive_package['name']!r}")
-        texlive_package[cashe_col_name] = blatex.packages.get_number_of_tex_nackages(db, texlive_package['name'])
+        texlive_package["nr_of_tex_packages"] = blatex.packages.get_number_of_tex_packages(db, texlive_package['name'])
         db.update_entry(texlive_package)
 
 def json_to_database():
@@ -66,7 +64,7 @@ def json_to_database():
     for n, (texlive_package, tex_packages) in enumerate(scraped_data.items()):
         print(f"{n+1}/{len(scraped_data)} : {texlive_package}")
         
-        texlive_package_id = db.add_entry({"name": texlive_package[8:]}, "texlive_packages")
+        texlive_package_id = db.add_entry({"name": texlive_package[8:]}, "texlive_packages", fill_null=True)
 
         for tex_package in tex_packages:
             
