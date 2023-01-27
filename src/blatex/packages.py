@@ -25,7 +25,7 @@ def get_number_of_tex_packages(db: Database, texlive_package):
 
     db.cursor.execute(sql)
 
-    return db.cursor.fetchall()
+    return db.cursor.fetchall()[0][0]
 
 
 def find_texlive_packages(db: Database, tex_package: str):
