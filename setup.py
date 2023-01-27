@@ -17,6 +17,7 @@ setup(
         "resources/templates/*",
         "resources/default-local-config.json",
         "resources/default-global-config.json"
+        "resources/packages.db",
         ]},
     install_requires = [
         "termcolor",
