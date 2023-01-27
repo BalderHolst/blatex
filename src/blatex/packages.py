@@ -63,8 +63,6 @@ def get_texlive_recommendations(tex_package, count=5):
     return [p[1] for p in recommended_texlive_packages]
 
 
-    db = get_db()
-
 
 
 
