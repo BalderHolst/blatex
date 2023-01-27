@@ -14,7 +14,7 @@ def create_blank_database():
 
     db = Database(db_file, new=True)
 
-    db.create_table("dnf_packages", [
+    db.create_table("texlive_packages", [
             Column("id", "integer", primary_key=True),
             Column("name", "string")
         ])
@@ -26,9 +26,9 @@ def create_blank_database():
         ])
 
 
-    db.create_table("dnf_to_tex", [
+    db.create_table("texlive_to_tex", [
             Column("id", "integer", primary_key=True),
-            Column("dnf_package_id", "integer", foreign_key=ForeignKey("dnf_packages", "id")),
+            Column("texlive_package_id", "integer", foreign_key=ForeignKey("texlive_packages", "id")),
             Column("tex_package_id", "integer", foreign_key=ForeignKey("tex_packages", "id"))
         ])
 
@@ -48,10 +48,10 @@ def json_to_database():
     with json_file.open() as f:
         scraped_data = json.load(f)
 
-    for n, (dnf_package, tex_packages) in enumerate(scraped_data.items()):
-        print(f"{n+1}/{len(scraped_data)} : {dnf_package}")
+    for n, (texlive_package, tex_packages) in enumerate(scraped_data.items()):
+        print(f"{n+1}/{len(scraped_data)} : {texlive_package}")
         
-        dnf_package_id = db.add_entry({"name": dnf_package}, "dnf_packages")
+        texlive_package_id = db.add_entry({"name": texlive_package[8:]}, "texlive_packages")
 
         for i, tex_package in enumerate(tex_packages):
             print(f"{n+1}/{len(scraped_data)} : {dnf_package} - {i+1}/{len(tex_packages)}")
@@ -62,9 +62,9 @@ def json_to_database():
                 tex_package_id = db.add_entry({"name": tex_package}, "tex_packages")
 
             db.add_entry({
-                "dnf_package_id": dnf_package_id, 
+                "texlive_package_id": texlive_package_id,
                 "tex_package_id": tex_package_id
-                }, "dnf_to_tex")
+                }, "texlive_to_tex")
 
     db.save()
 
