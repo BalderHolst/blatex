@@ -63,22 +63,8 @@ def get_texlive_recommendations(tex_package, count=5):
     return [p[1] for p in recommended_texlive_packages]
 
 
-def update_cashed_tex_package_counts():
     db = get_db()
-    
-    cashe_col_name = "nr_of_tex_packages" 
-    if not "nr_of_tex_packages" in [col.name for col in db.get_table_cols("texlive_packages")]:
-        db.add_column("texlive_packages", Column("nr_of_tex_packages", "int"))
-
-    for texlive_package in db.get_table("texlive_packages"):
-        print(f"Cashing for package {texlive_package['name']!r}...")
-        texlive_package[cashe_col_name] = len(find_tex_packages(db, texlive_package['name']))
-        db.update_entry(texlive_package)
-
-    db.close()
-    print("DONE!")
 
 
-if __name__ == "__main__":
-    for p in get_texlive_recommendations("graphicx", 10):
-        print(p)
+
+

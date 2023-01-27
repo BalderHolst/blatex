@@ -3,9 +3,11 @@ from pathlib import Path
 import os
 from sqlite_integrated import Database, Column, ForeignKey
 
-db_file = Path("dnf.db")
+import blatex.packages
 
-json_file = Path("./packages.json")
+db_file = Path("./src/blatex/resources/packages.db")
+
+json_file = Path("scripts/find_package_names/packages.json")
 
 def create_blank_database():
 
@@ -42,6 +44,19 @@ def texpackage_in_database(db: Database, tex_package) -> int | None:
         return results[0]["id"]
     return None
 
+def cash_tex_package_counts(db: Database):
+    
+    cashe_col_name = "nr_of_tex_packages" 
+    if not "nr_of_tex_packages" in [col.name for col in db.get_table_cols("texlive_packages")]:
+        db.add_column("texlive_packages", Column("nr_of_tex_packages", "int"))
+    
+    texlive_packages = db.get_table("texlive_packages")
+
+    for n, texlive_package in enumerate(texlive_packages):
+        print(f"Cashing tex packages for package ({n+1}/{len(texlive_packages)}) {texlive_package['name']!r}")
+        texlive_package[cashe_col_name] = blatex.packages.get_number_of_tex_nackages(db, texlive_package['name'])
+        db.update_entry(texlive_package)
+
 def json_to_database():
     db = create_blank_database()
 
@@ -53,8 +68,7 @@ def json_to_database():
         
         texlive_package_id = db.add_entry({"name": texlive_package[8:]}, "texlive_packages")
 
-        for i, tex_package in enumerate(tex_packages):
-            print(f"{n+1}/{len(scraped_data)} : {dnf_package} - {i+1}/{len(tex_packages)}")
+        for tex_package in tex_packages:
             
             tex_package_id = texpackage_in_database(db, tex_package)
 
@@ -66,7 +80,10 @@ def json_to_database():
                 "tex_package_id": tex_package_id
                 }, "texlive_to_tex")
 
-    db.save()
+    print("Cashing number of tex packages in every texpackage")
+    cash_tex_package_counts(db)
+
+    db.close()
 
 
 if __name__ == "__main__":
