@@ -55,6 +55,19 @@ def cash_tex_package_counts(db: Database):
         texlive_package["nr_of_tex_packages"] = blatex.packages.get_number_of_tex_packages(db, texlive_package['name'])
         db.update_entry(texlive_package)
 
+def add_common_column(db: Database, file: Path):
+
+    colname = "common"
+    if not db.is_column("texlive_packages", colname):
+        db.add_column("texlive_packages", colname)
+
+    with file.open("r") as f:
+        common_packages = f.readlines()
+
+    for common_package in common_packages:
+        print(common_package)
+
+
 def json_to_database():
     db = create_blank_database()
 
