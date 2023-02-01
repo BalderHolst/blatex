@@ -1,6 +1,7 @@
-amssymb
+amscls
 amsfonts
 amsmath
+amstex
 graphics
 biblatex
 xcolor
