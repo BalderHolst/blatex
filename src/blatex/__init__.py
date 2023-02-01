@@ -218,7 +218,7 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 @click.option('--git', is_flag=True, default=False, help="Initialize git repo in the root directory.")
 @click.option('-v', '--verbose', is_flag=True, help='Be verbose.')
 def blatex_init(template, directory, git, verbose):
-    """Initialize a latex project"""
+    """Initialize a latex project."""
 
     if not directory:
         directory = Path.cwd()
@@ -370,7 +370,7 @@ blatex_config_global.add_command(blatex_config_global_create)
 
 @click.group("config", context_settings=CONTEXT_SETTINGS)
 def blatex_config():
-    """Commands for configuration"""
+    """Commands for configuration."""
     pass
 
 blatex_config.add_command(blatex_config_global)
