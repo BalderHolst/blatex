@@ -1,5 +1,6 @@
 from sqlite_integrated import Database, Column
 import pkg_resources
+import click
 
 def get_db() -> Database:
     db_file = pkg_resources.resource_filename("blatex", "resources/packages.db")
@@ -40,29 +41,21 @@ def find_texlive_packages(db: Database, tex_package: str):
     return db.cursor.fetchall()
 
 # TODO make common packages appear first
-def get_texlive_recommendations(tex_package, count=5):
+def echo_texlive_recommendations(tex_package, count=8):
     db = get_db()
 
-    texlive_packages = find_texlive_packages(db, tex_package)
+    sql = """SELECT tl.* FROM tex_packages t
+    JOIN texlive_to_tex ttt ON ttt.tex_package_id = t.id
+    JOIN texlive_packages tl ON tl.id = ttt.texlive_package_id
+    WHERE t.name = """ + "\"" + str(tex_package) + "\"" +  " ORDER BY nr_of_tex_packages ASC"
 
-    recommended_texlive_packages = []
+    db.cursor.execute(sql)
 
-    for _ in range(count):
-        best = None
-        for texlive_package in texlive_packages:
-            if texlive_package in recommended_texlive_packages:
-                continue
-            if not best or texlive_package[2] < best[2]:
-                best = texlive_package
-        recommended_texlive_packages.append(best)
+    texlive_packages = db.cursor.fetchall()[:count]
 
+    print(texlive_packages)
 
-
-    db.conn.close()
-
-    return [p[1] for p in recommended_texlive_packages]
-
-
-
+    for p in texlive_packages:
+        click.echo(p[1])
 
 
