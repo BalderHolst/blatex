@@ -1,3 +1,6 @@
+# TODO
+# - Check that latexmk or other compiler is installed
+
 import click
 
 import zipfile
@@ -248,9 +251,9 @@ def blatex_init(template, directory, git, verbose):
         init_git_repo(directory)
 
 
-@click.command("templates", context_settings=CONTEXT_SETTINGS)
+@click.command("list", context_settings=CONTEXT_SETTINGS)
 @click.option("--full-path", "full_path", is_flag=True, help="Print the full path to the templates.")
-def blatex_list_templates(full_path):
+def blatex_templates_list(full_path):
     """List available templates"""
     if full_path:
         for template in get_templates():
@@ -260,18 +263,46 @@ def blatex_list_templates(full_path):
     for template in get_templates():
         click.echo(template.stem)
 
-@click.command("errors", context_settings=CONTEXT_SETTINGS)
+@click.group("templates", context_settings=CONTEXT_SETTINGS)
+def blatex_templates():
+    """Commands for interacting with templates."""
+    pass
+
+blatex_templates.add_command(blatex_templates_list)
+
+
+@click.command("list", context_settings=CONTEXT_SETTINGS)
 @click.option("--log", is_flag=True, help="Stylishly print the log file.")
 @click.option("--no-color", "no_color", is_flag=True, help="Disable colored output.")
-def blatex_list_errors(log, no_color):
+def blatex_errors_list(log, no_color):
     """List errors and warnings from last time the document was compiled."""
     echo_errors(echo_logs=log, color=not no_color)
 
-@click.command("packages", context_settings=CONTEXT_SETTINGS)
+@click.group("errors", context_settings=CONTEXT_SETTINGS)
+def blatex_errors():
+    """Commands for interacting with errors and warnings.
+
+    This is mostly done by parsing the log file.
+    """
+    pass
+
+blatex_errors.add_command(blatex_errors_list)
+
+
+@click.command("list", context_settings=CONTEXT_SETTINGS)
 @click.option("--no-color", "no_color", is_flag=True, help="Disable colored output.")
 @click.option("--needed", is_flag=True, help="List only packages that are not installed, but used in the document.")
-def blatex_list_packages(no_color, needed):
-    """List packages used in the project"""
+@click.option("--installed", "-i", is_flag=True, help="List all installed packages.")
+@click.option("--no-recommend", is_flag=True, help="Do not recommend texlive packages to install.")
+def blatex_packages_list(no_color=False, needed=False, installed=False, no_recommend=False):
+    """List packages in different ways."""
+
+    if installed:
+        for package in get_installed_packages():
+            click.echo(package)
+        return
+
+
     installed_packages = get_installed_packages()
     used_packages = get_used_packages()
     
@@ -300,15 +331,12 @@ def blatex_list_installed_packages():
     for package in get_installed_packages():
         click.echo(package)
 
-@click.group("list", context_settings=CONTEXT_SETTINGS)
-def blatex_list():
-    """Commands to list things in blatex"""
+@click.group("packages", context_settings=CONTEXT_SETTINGS)
+def blatex_packages():
+    """Commands for interacting with packages in the project and on the system."""
     pass
 
-blatex_list.add_command(blatex_list_templates)
-blatex_list.add_command(blatex_list_errors)
-blatex_list.add_command(blatex_list_packages)
-blatex_list.add_command(blatex_list_installed_packages)
+blatex_packages.add_command(blatex_packages_list)
 
 @click.command("create", context_settings=CONTEXT_SETTINGS)
 @click.option("-f", "--force", is_flag=True, help="Override current configuration.")
@@ -383,6 +411,8 @@ def blatex():
 
 blatex.add_command(blatex_init)
 blatex.add_command(blatex_compile)
+blatex.add_command(blatex_errors)
+blatex.add_command(blatex_packages)
+blatex.add_command(blatex_templates)
 blatex.add_command(blatex_clean)
-blatex.add_command(blatex_list)
 blatex.add_command(blatex_config)
