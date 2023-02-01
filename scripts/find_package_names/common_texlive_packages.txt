@@ -5,3 +5,7 @@ amstex
 graphics
 biblatex
 xcolor
+scheme-minimal
+scheme-small
+scheme-medium
+scheme-full
