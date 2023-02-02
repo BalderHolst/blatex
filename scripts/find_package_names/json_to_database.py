@@ -51,9 +51,13 @@ def cash_tex_package_counts(db: Database):
     texlive_packages = db.get_table("texlive_packages")
 
     for n, texlive_package in enumerate(texlive_packages):
-        print(f"Cashing tex packages for package ({n+1}/{len(texlive_packages)}) {texlive_package['name']!r}")
-        texlive_package["nr_of_tex_packages"] = blatex.packages.get_number_of_tex_packages(db, texlive_package['name'])
+        print(f"Cashing tex packages for package ({n+1}/{len(texlive_packages)}) {texlive_package['name']!r}", end="")
+        nr = blatex.packages.get_number_of_tex_packages(db, texlive_package['name'])
+        print(" -> " + str(nr))
+        texlive_package["nr_of_tex_packages"] = nr
         db.update_entry(texlive_package)
+
+    db.save()
 
 def add_common_column(db: Database):
 
@@ -118,7 +122,4 @@ def json_to_database():
 
 
 if __name__ == "__main__":
-    db = Database(db_file)
-    add_common_column(db)
-
-    db.close()
+    json_to_database()

@@ -19,15 +19,7 @@ def find_tex_packages(db: Database, texlive_package):
     return db.cursor.fetchall()
 
 def get_number_of_tex_packages(db: Database, texlive_package):
-
-    sql = """SELECT COUNT(*) FROM texlive_packages tl
-    JOIN texlive_to_tex ttt ON ttt.texlive_package_id = tl.id
-    JOIN tex_packages t ON t.id = ttt.tex_package_id
-    WHERE tl.name = """ + f"'{texlive_package}'"
-
-    db.cursor.execute(sql)
-
-    return db.cursor.fetchall()[0][0]
+    return len(find_tex_packages(db, texlive_package))
 
 
 def find_texlive_packages(db: Database, tex_package: str):
