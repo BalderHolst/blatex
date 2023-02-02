@@ -22,7 +22,8 @@ setup(
     install_requires = [
         "termcolor",
         "click",
-        "pathlib"
+        "pathlib",
+        "sqlite-integrated"
         ],
     entry_points = {
         'console_scripts': ['blatex=blatex:blatex']
