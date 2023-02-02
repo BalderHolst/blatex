@@ -6,7 +6,7 @@ import click
 
 from termcolor import colored
 
-WIDTH = 70
+WIDTH = 80
 
 def echo_trace(trace, color=True):
     if color:
@@ -34,7 +34,7 @@ class Error():
         return f"Error({self.trace})"
 
 class PackageError(Error):
-    def __init__(self,package_name, message, trace) -> None:
+    def __init__(self, package_name, message, trace) -> None:
         super().__init__(message, trace)
         self.package_name = package_name
 
@@ -49,6 +49,23 @@ class PackageError(Error):
 
     def __repr__(self) -> str:
         return f"PackageError({self.package_name!r}, {self.trace})"
+
+class FileNotFoundError(Error):
+    def __init__(self, package_name, message, trace) -> None:
+        super().__init__(message, trace)
+        self.file_name = package_name
+
+    def echo(self, color=True):
+        title = f" Not Found Error: {self.file_name} ".center(WIDTH, "=")
+        if color:
+            click.echo(colored(title, "red"))
+        else:
+            click.echo(title)
+        click.echo(self.message + "\n")
+        echo_trace(self.trace, color=color)
+
+    def __repr__(self) -> str:
+        return f"FileNotFoundError({self.file_name!r}, {self.trace})"
 
 class Warning():
     def __init__(self, message, trace) -> None:
@@ -188,6 +205,10 @@ def parse_log_file(log_file: Path, echo_logs = False):
 
     for n, line in enumerate(lines):
 
+        if echo_logs:
+            echo_with_level(line, len(stack))
+
+
         SEARCH_LINES = 30
 
         if line.count("(") > 0 or line.count(")") > 0:
@@ -202,20 +223,30 @@ def parse_log_file(log_file: Path, echo_logs = False):
         if m:
             error_name = m.group(1)
             error_lines = get_package_error_message(lines[n:n+SEARCH_LINES])
-
             errors.append(PackageError(error_name, "\n".join(error_lines), stack.copy()))
+            continue
+
+        # Detect file not found error
+        m = re.search(r"! LaTeX Error: File `(.+)' not found\.", line)
+        if m:
+            error_name = m.group(1)
+            error_lines = get_error_message(lines[n:n+SEARCH_LINES])
+            errors.append(FileNotFoundError(error_name, "\n".join(error_lines), stack.copy()))
+            continue
 
         # Detect errors
         m = re.search("! LaTeX Error:", line)
         if m:
             error_lines = get_error_message(lines[n:n+SEARCH_LINES])
             errors.append(Error("\n".join(error_lines), stack.copy()))
+            continue
 
         # TODO detect warnings
 
         m = re.search(r"^LaTeX Warning:", line)
         if m:
             warnings.append(Warning(line, stack.copy()))
+            continue
 
         # Hbox
         m = re.search(r"(Overfull|Underfull) \\(hbox|vbox)", line)
@@ -226,9 +257,8 @@ def parse_log_file(log_file: Path, echo_logs = False):
                         message=line,
                         trace=stack.copy()
                         ))
+            continue
 
-        if echo_logs:
-            echo_with_level(line, len(stack))
 
 
 

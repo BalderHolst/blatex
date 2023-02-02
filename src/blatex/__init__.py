@@ -14,7 +14,9 @@ import shutil
 import subprocess
 import os
 
-from blatex.log_parser import *
+from termcolor import colored
+
+import blatex.log_parser as log_parser
 import blatex.packages as bpackages
 
 local_config_file_name = ".blatex"
@@ -194,21 +196,31 @@ def echo_errors(echo_logs = False, color=True):
         click.echo("No log file found.")
         return
 
-    (warnings, errors) = parse_log_file(log_file, echo_logs=echo_logs)
+    (warnings, errors) = log_parser.parse_log_file(log_file, echo_logs=echo_logs)
 
     if len(errors) == 0 and len(warnings) == 0:
         if color:
             click.echo(colored("Finished with no errors!", "green"))
         else:
             click.echo("Finished with no errors!")
+        return
+
+    file_not_found_errors = []
 
     for warning in warnings:
         warning.echo(color=color)
         click.echo()
 
     for error in errors:
+        if isinstance(error, log_parser.FileNotFoundError):
+            file_not_found_errors.append(error)
         error.echo(color=color)
         click.echo()
+
+
+    # Recommends packages if needed
+    for error in file_not_found_errors:
+        bpackages.echo_texlive_recommendations(Path(error.file_name).stem)
 
     # click.echo("=" * WIDTH)
     # click.echo(f"For more details, run blatex list errors --log, or check the {str(log_file.relative_to(Path.cwd()))!r} file manually.")
