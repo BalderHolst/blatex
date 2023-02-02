@@ -1,5 +1,5 @@
 # TODO
-# - Check that latexmk or other compiler is installed
+# - Handle other package install locations
 
 import click
 
@@ -66,7 +66,13 @@ def run_cmd(cmd, verbose=False):
     if verbose:
         click.echo(f"Running: {cmd!r} from {str(Path.cwd())!r}.\n")
 
-    subprocess.run(cmd.split(" "))
+    try:
+        subprocess.run(cmd.split(" "))
+    except FileNotFoundError:
+        click.echo(
+                colored(f"Could not execute compiler command: `" + cmd + "`.\n\nIs `" + cmd.split()[0] + "` installed and executable?", "red")
+                )
+        quit(1)
 
     os.chdir(cwd)
 
