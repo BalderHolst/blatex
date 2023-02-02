@@ -9,3 +9,4 @@ scheme-minimal
 scheme-small
 scheme-medium
 scheme-full
+blindtext
