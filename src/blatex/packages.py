@@ -1,6 +1,7 @@
 from sqlite_integrated import Database, Column
 import pkg_resources
 import click
+from termcolor import colored
 
 def get_db() -> Database:
     db_file = pkg_resources.resource_filename("blatex", "resources/packages.db")
@@ -40,8 +41,7 @@ def find_texlive_packages(db: Database, tex_package: str):
 
     return db.cursor.fetchall()
 
-# TODO make common packages appear first
-def echo_texlive_recommendations(tex_package, count=8):
+def echo_texlive_recommendations(tex_package, count=8, no_common=False):
     db = get_db()
 
     sql = """SELECT tl.* FROM tex_packages t
@@ -53,9 +53,14 @@ def echo_texlive_recommendations(tex_package, count=8):
 
     texlive_packages = db.cursor.fetchall()[:count]
 
-    print(texlive_packages)
 
+    click.echo(f"Recommended texlive packages that include \'{colored(tex_package, 'red')}\'.")
     for p in texlive_packages:
-        click.echo(p[1])
+        
+        badge = "    "
+        if p[3] and not no_common:
+            badge = "(c) "
+
+        click.echo(colored(badge + p[1], "yellow"))
 
 

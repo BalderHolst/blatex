@@ -15,6 +15,7 @@ import subprocess
 import os
 
 from blatex.log_parser import *
+import blatex.packages as bpackages
 
 local_config_file_name = ".blatex"
 
@@ -294,7 +295,8 @@ blatex_errors.add_command(blatex_errors_list)
 @click.option("--needed", is_flag=True, help="List only packages that are not installed, but used in the document.")
 @click.option("--installed", "-i", is_flag=True, help="List all installed packages.")
 @click.option("--no-recommend", is_flag=True, help="Do not recommend texlive packages to install.")
-def blatex_packages_list(no_color=False, needed=False, installed=False, no_recommend=False):
+@click.option("--no-common", is_flag=True, help="Do not show which packages are common in package recommendations.")
+def blatex_packages_list(no_color=False, needed=False, installed=False, no_recommend=False, no_common=False):
     """List packages in different ways."""
 
     if installed:
@@ -308,6 +310,8 @@ def blatex_packages_list(no_color=False, needed=False, installed=False, no_recom
     
     used_packages.sort()
 
+    needed_packages = []
+
     for package in used_packages:
         if package in installed_packages:
             if needed:
@@ -317,6 +321,7 @@ def blatex_packages_list(no_color=False, needed=False, installed=False, no_recom
             else:
                 click.echo(f"{package} [INSTALLED]")
         else:
+            needed_packages.append(package)
             if not no_color:
                 if needed:
                     click.echo(colored(f"{package}", "red"))
@@ -325,11 +330,13 @@ def blatex_packages_list(no_color=False, needed=False, installed=False, no_recom
             else:
                 click.echo(package)
 
-@click.command("installed-packages", context_settings=CONTEXT_SETTINGS)
-def blatex_list_installed_packages():
-    """List installed packages"""
-    for package in get_installed_packages():
-        click.echo(package)
+    if not no_recommend:
+        for package in needed_packages:
+            click.echo()
+            bpackages.echo_texlive_recommendations(package, no_common=no_common)
+
+    click.echo()
+
 
 @click.group("packages", context_settings=CONTEXT_SETTINGS)
 def blatex_packages():
