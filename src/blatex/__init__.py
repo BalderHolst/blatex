@@ -219,11 +219,10 @@ def echo_errors(echo_logs = False, color=True):
 
 
     # Recommends packages if needed
-    for error in file_not_found_errors:
-        bpackages.echo_texlive_recommendations(Path(error.file_name).stem)
-
-    # click.echo("=" * WIDTH)
-    # click.echo(f"For more details, run blatex list errors --log, or check the {str(log_file.relative_to(Path.cwd()))!r} file manually.")
+    if len(file_not_found_errors) > 0:
+        for error in file_not_found_errors:
+            bpackages.echo_texlive_recommendations(Path(error.file_name).stem)
+        click.echo(colored("\n\nRun `blatex clean` before compiling again if you install missing packages.", "blue"))
 
 
 # ====================================== INTERFACE ====================================== 
