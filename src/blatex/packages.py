@@ -53,8 +53,12 @@ def echo_texlive_recommendations(tex_package, count=8, no_common=False):
 
     texlive_packages = db.cursor.fetchall()[:count]
 
+    if len(texlive_packages) == 0:
+        click.echo(colored(f"Could not find any texlive package including tex package {tex_package!r}", "red"))
+        return
 
-    click.echo(f"Recommended texlive packages that include \'{colored(tex_package, 'red')}\'.")
+
+    click.echo(f"Recommended texlive packages that include \'{colored(tex_package, 'cyan')}\':")
     for p in texlive_packages:
         
         badge = "    "
