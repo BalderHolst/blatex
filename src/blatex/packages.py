@@ -47,7 +47,7 @@ def echo_texlive_recommendations(tex_package, count=8):
     sql = """SELECT tl.* FROM tex_packages t
     JOIN texlive_to_tex ttt ON ttt.tex_package_id = t.id
     JOIN texlive_packages tl ON tl.id = ttt.texlive_package_id
-    WHERE t.name = """ + "\"" + str(tex_package) + "\" " +  "ORDER BY nr_of_tex_packages ASC, common DESC"
+    WHERE t.name = """ + "\"" + str(tex_package) + "\" " +  "ORDER BY common DESC, nr_of_tex_packages ASC"
 
     db.cursor.execute(sql)
 
