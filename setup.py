@@ -5,7 +5,7 @@ with open("README.md", "r") as f:
 
 setup(
     name = "blatex",
-    version = '0.1.0',
+    version = '0.1.3',
     author = "Balder Holst",
     author_email = "balderwh@gmail.com",
     packages = ["blatex"],
@@ -15,9 +15,7 @@ setup(
     package_dir={'': 'src'},
     package_data={"blatex": [
         "resources/templates/*",
-        "resources/default-local-config.json",
-        "resources/default-global-config.json"
-        "resources/packages.db",
+        "resources/*"
         ]},
     install_requires = [
         "termcolor",
