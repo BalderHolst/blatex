@@ -19,6 +19,8 @@ from termcolor import colored
 import blatex.log_parser as log_parser
 import blatex.packages as bpackages
 
+WIDTH = 80
+
 local_config_file_name = ".blatex"
 
 builtin_template_dir = Path(pkg_resources.resource_filename("blatex", "resources/templates"))

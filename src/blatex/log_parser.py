@@ -4,9 +4,11 @@ import re
 
 import click
 
+import blatex
+
 from termcolor import colored
 
-WIDTH = 80
+blatex.WIDTH = 80
 
 def echo_trace(trace, color=True):
     if color:
@@ -22,7 +24,7 @@ class Error():
         self.trace = trace
 
     def echo(self, color=True):
-        title = " LaTeX Error ".center(WIDTH, "=")
+        title = " LaTeX Error ".center(blatex.WIDTH, "=")
         if color:
             click.echo(colored(title, "red"))
         else:
@@ -39,7 +41,7 @@ class PackageError(Error):
         self.package_name = package_name
 
     def echo(self, color=True):
-        title = f" Package Error: {self.package_name} ".center(WIDTH, "=")
+        title = f" Package Error: {self.package_name} ".center(blatex.WIDTH, "=")
         if color:
             click.echo(colored(title, "red"))
         else:
@@ -56,7 +58,7 @@ class FileNotFoundError(Error):
         self.file_name = package_name
 
     def echo(self, color=True):
-        title = f" Not Found Error: {self.file_name} ".center(WIDTH, "=")
+        title = f" Not Found Error: {self.file_name} ".center(blatex.WIDTH, "=")
         if color:
             click.echo(colored(title, "red"))
         else:
@@ -73,7 +75,7 @@ class Warning():
         self.trace = trace
 
     def echo(self, color=True):
-        title = " Warning ".center(WIDTH, "=")
+        title = " Warning ".center(blatex.WIDTH, "=")
         if color:
             click.echo(colored(title, "yellow"))
         else:
@@ -91,7 +93,7 @@ class BoxWarning(Warning):
         self.boxtype = boxtype
 
     def echo(self, color=True):
-        title = f" Box Warning: {self.filling} {self.boxtype.capitalize()} ".center(WIDTH, "=")
+        title = f" Box Warning: {self.filling} {self.boxtype.capitalize()} ".center(blatex.WIDTH, "=")
         if color:
             click.echo(colored(title, "yellow"))
         else:
