@@ -1,5 +1,7 @@
 # TODO
 # - Handle other package install locations
+# - Check that texlive is installed
+# - Check if tlmgr is set up
 
 import click
 
@@ -359,10 +361,16 @@ def blatex_packages_list(no_color=False, needed=False, installed=False, no_recom
 
 @click.command("recommend", context_settings=CONTEXT_SETTINGS)
 @click.argument("tex-package")
-def blatex_packages_recomment(tex_package):
+def blatex_packages_recommend(tex_package):
     """Recommends texlive packages that include a certain tex package."""
     bpackages.echo_texlive_recommendations(tex_package)
 
+
+@click.command("search", context_settings=CONTEXT_SETTINGS)
+@click.argument("package_name")
+def blatex_packages_search(package_name):
+    """Search for tex and texlive packages by name."""
+    bpackages.echo_search(package_name)
 
 
 @click.group("packages", context_settings=CONTEXT_SETTINGS)
@@ -371,7 +379,8 @@ def blatex_packages():
     pass
 
 blatex_packages.add_command(blatex_packages_list)
-blatex_packages.add_command(blatex_packages_recomment)
+blatex_packages.add_command(blatex_packages_recommend)
+blatex_packages.add_command(blatex_packages_search)
 
 @click.command("create", context_settings=CONTEXT_SETTINGS)
 @click.option("-f", "--force", is_flag=True, help="Override current configuration.")

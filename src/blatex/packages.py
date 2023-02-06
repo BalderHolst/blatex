@@ -1,3 +1,5 @@
+import blatex
+
 from sqlite_integrated import Database, Column
 import pkg_resources
 import click
@@ -5,7 +7,7 @@ from termcolor import colored
 
 def get_db() -> Database:
     db_file = pkg_resources.resource_filename("blatex", "resources/packages.db")
-    return Database(db_file)
+    return Database(db_file, silent=True)
 
 def find_tex_packages(db: Database, texlive_package):
 
@@ -32,6 +34,34 @@ def find_texlive_packages(db: Database, tex_package: str):
     db.cursor.execute(sql)
 
     return db.cursor.fetchall()
+
+def echo_search(package_name):
+    db = get_db()
+
+    click.echo(" Tex packages ".center(blatex.WIDTH, "="))
+    
+    search = db.SELECT().FROM("tex_packages").WHERE("name").LIKE("%" + package_name + "%").run()
+
+    for p in search:
+        click.echo(p['name'])
+
+    exact = db.SELECT().FROM("tex_packages").WHERE("name", package_name).run()
+
+    if exact:
+        click.echo(colored("\nFound exact match: '" + exact[0]['name'] + "'!", "green"))
+
+
+    click.echo("\n" + "Texlive packages ".center(blatex.WIDTH, "="))
+    
+    search = db.SELECT().FROM("texlive_packages").WHERE("name").LIKE("%" + package_name + "%").run()
+
+    for p in search:
+        click.echo(p['name'])
+
+    exact = db.SELECT().FROM("texlive_packages").WHERE("name", package_name).run()
+
+    if exact:
+        click.echo(colored("\nFound exact match: '" + exact[0]['name'] + "'!", "green"))
 
 def echo_texlive_recommendations(tex_package, count=8, no_common=False):
     db = get_db()
