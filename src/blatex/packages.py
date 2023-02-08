@@ -38,7 +38,7 @@ def find_texlive_packages(db: Database, tex_package: str):
 def echo_search(package_name):
     db = get_db()
 
-    click.echo(" Tex packages ".center(blatex.WIDTH, "="))
+    click.echo(" Tex packages ".center(blatex.OUTPUT_WIDTH, "="))
     
     search = db.SELECT().FROM("tex_packages").WHERE("name").LIKE("%" + package_name + "%").run()
 
@@ -51,7 +51,7 @@ def echo_search(package_name):
         click.echo(colored("\nFound exact match: '" + exact[0]['name'] + "'!", "green"))
 
 
-    click.echo("\n" + "Texlive packages ".center(blatex.WIDTH, "="))
+    click.echo("\n" + "Texlive packages ".center(blatex.OUTPUT_WIDTH, "="))
     
     search = db.SELECT().FROM("texlive_packages").WHERE("name").LIKE("%" + package_name + "%").run()
 
