@@ -66,27 +66,41 @@ def echo_search(package_name):
 def echo_texlive_recommendations(tex_package, count=8, no_common=False):
     db = get_db()
 
-    sql = """SELECT tl.* FROM tex_packages t
-    JOIN texlive_to_tex ttt ON ttt.tex_package_id = t.id
-    JOIN texlive_packages tl ON tl.id = ttt.texlive_package_id
-    WHERE t.name = """ + "\"" + str(tex_package) + "\" " +  "ORDER BY common DESC, nr_of_tex_packages ASC"
+    sql = """select tl.name, tl.contrib from tex_packages tp
+join tex_to_texlive ttt on ttt.tex_package_id = tp.id
+join texlive_packages tl on ttt.texlive_package_id == tl.id
+where tp.name = """ + "\"" + str(tex_package) + "\""
 
     db.cursor.execute(sql)
 
     texlive_packages = db.cursor.fetchall()[:count]
 
+    sql = """select mt.name from tex_packages tp
+join tex_to_miktex ttt on ttt.tex_package_id = tp.id
+join miktex_packages mt on ttt.miktex_package_id == mt.id
+where tp.name = """ + "\"" + str(tex_package) + "\""
+
+    db.cursor.execute(sql)
+
+    miktex_packages = db.cursor.fetchall()[:count]
+
     if len(texlive_packages) == 0:
         click.echo(colored(f"Could not find any texlive package including tex package {tex_package!r}", "red"))
         return
 
+    if len(miktex_packages) == 0:
+        click.echo(colored(f"Could not find any miktex package including tex package {tex_package!r}", "red"))
+        return
 
-    click.echo(f"Recommended texlive packages that include \'{colored(tex_package, 'cyan')}\':")
+    click.echo(f"Recommended packages that include \'{colored(tex_package)}\':")
+
+    badge = "    "
     for p in texlive_packages:
-        
-        badge = "    "
-        if p[3] and not no_common:
-            badge = "(c) "
 
-        click.echo(colored(badge + p[1], "yellow"))
+        if p[1]:
+            click.echo(colored(badge + p[0] + " [texlive contrib]", "cyan"))
+        else:
+            click.echo(colored(badge + p[0] + " [texlive]", "yellow"))
 
-
+    for p in miktex_packages:
+        click.echo(colored(badge + p[0] + " [miktex]", "magenta"))
