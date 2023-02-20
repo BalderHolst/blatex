@@ -2,6 +2,7 @@
 # - Handle other package install locations
 # - Check that texlive is installed
 # - Check if tlmgr is set up
+# - Check that a pdf file was output after compilation
 
 import click
 
