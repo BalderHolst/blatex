@@ -5,7 +5,7 @@ This is a cli tool for managing latex projects.
 - `blatex init` : Initialize latex document with templates
 - `blatex compile` : Compile from any sub-directory of the project.
 - `blatex clean` : Clean temporary files from any sub-directory.
-- `blatex packages` : List packages used by the document, and mark if they are installed. It will also recommend texlive packages that contain the missing tex package.
+- `blatex packages` : List packages used by the document, and mark if they are installed.
 - `blatex errors` : Parse errors and warnings, and display them nicely.
 - `blatex templates` : list available templates and their sources.
 

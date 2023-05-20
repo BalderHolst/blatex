@@ -1,8 +1,0 @@
-amscls
-amsfonts
-amsmath
-amstex
-graphics
-biblatex
-xcolor
-blindtext

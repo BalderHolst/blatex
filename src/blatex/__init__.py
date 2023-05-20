@@ -4,6 +4,7 @@
 # - Check if tlmgr is set up
 # - Check that a pdf file was output after compilation
 
+from sys import prefix
 import click
 
 import zipfile
@@ -222,13 +223,43 @@ def echo_errors(echo_logs = False, color=True):
         error.echo(color=color)
         click.echo()
 
-
-    # Recommends packages if needed
     if len(file_not_found_errors) > 0:
-        for error in file_not_found_errors:
-            bpackages.echo_texlive_recommendations(Path(error.file_name).stem)
-        click.echo(colored("\n\nRun `blatex clean` before compiling again if you install missing packages.", "blue"))
+        click.echo("Packages used by the document:")
+        list_packages(prefix="\t", no_color=not color)
+        click.echo(colored("Run `blatex clean` before compiling again if you install missing packages.", "blue"))
 
+def list_packages(no_color=False, needed=False, installed=False, prefix=""): 
+    if installed:
+        for package in get_installed_packages():
+            click.echo(package)
+        return
+
+    installed_packages = get_installed_packages()
+    used_packages = get_used_packages()
+    
+    used_packages.sort()
+
+    needed_packages = []
+
+    for package in used_packages:
+        print(prefix, end="")
+        if package in installed_packages:
+            if needed:
+                continue
+            if not no_color:
+                click.echo(colored(f"{package} [INSTALLED]", "green"))
+            else:
+                click.echo(f"{package} [INSTALLED]")
+        else:
+            needed_packages.append(package)
+            if not no_color:
+                if needed:
+                    click.echo(colored(f"{package}", "red"))
+                    continue
+                click.echo(colored(f"{package} [NOT INSTALLED]", "red"))
+            else:
+                click.echo(package)
+    click.echo()
 
 # ====================================== INTERFACE ====================================== 
 
@@ -316,63 +347,9 @@ blatex_errors.add_command(blatex_errors_list)
 @click.option("--no-color", "no_color", is_flag=True, help="Disable colored output.")
 @click.option("--needed", is_flag=True, help="List only packages that are not installed, but used in the document.")
 @click.option("--installed", "-i", is_flag=True, help="List all installed packages.")
-@click.option("--no-recommend", is_flag=True, help="Do not recommend texlive packages to install.")
-@click.option("--no-common", is_flag=True, help="Do not show which packages are common in package recommendations.")
-def blatex_packages_list(no_color=False, needed=False, installed=False, no_recommend=False, no_common=False):
+def blatex_packages_list(no_color=False, needed=False, installed=False):
     """List packages in different ways."""
-
-    if installed:
-        for package in get_installed_packages():
-            click.echo(package)
-        return
-
-
-    installed_packages = get_installed_packages()
-    used_packages = get_used_packages()
-    
-    used_packages.sort()
-
-    needed_packages = []
-
-    for package in used_packages:
-        if package in installed_packages:
-            if needed:
-                continue
-            if not no_color:
-                click.echo(colored(f"{package} [INSTALLED]", "green"))
-            else:
-                click.echo(f"{package} [INSTALLED]")
-        else:
-            needed_packages.append(package)
-            if not no_color:
-                if needed:
-                    click.echo(colored(f"{package}", "red"))
-                    continue
-                click.echo(colored(f"{package} [NOT INSTALLED]", "red"))
-            else:
-                click.echo(package)
-
-    if not no_recommend:
-        for package in needed_packages:
-            click.echo()
-            bpackages.echo_texlive_recommendations(package, no_common=no_common)
-
-    click.echo()
-
-
-@click.command("recommend", context_settings=CONTEXT_SETTINGS)
-@click.argument("tex-package")
-def blatex_packages_recommend(tex_package):
-    """Recommends texlive packages that include a certain tex package."""
-    bpackages.echo_texlive_recommendations(tex_package)
-
-
-@click.command("search", context_settings=CONTEXT_SETTINGS)
-@click.argument("package_name")
-def blatex_packages_search(package_name):
-    """Search for tex and texlive packages by name."""
-    bpackages.echo_search(package_name)
-
+    list_packages(no_color=False, needed=False, installed=False, prefix="")
 
 @click.group("packages", context_settings=CONTEXT_SETTINGS)
 def blatex_packages():
@@ -380,8 +357,6 @@ def blatex_packages():
     pass
 
 blatex_packages.add_command(blatex_packages_list)
-blatex_packages.add_command(blatex_packages_recommend)
-blatex_packages.add_command(blatex_packages_search)
 
 @click.command("create", context_settings=CONTEXT_SETTINGS)
 @click.option("-f", "--force", is_flag=True, help="Override current configuration.")
