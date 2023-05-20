@@ -160,7 +160,7 @@ def get_installed_packages(search_dir = None): # TODO return package-module tree
 
 def find_packages_in_file(file: Path):
     try:
-        return(re.findall(r"usepackage{(\w+)}", file.read_text()))
+        return([ m[-1] for m in re.findall(r"usepackage(\[[^\[\]]+\])?{(\w+)}", file.read_text()) ])
     except UnicodeDecodeError:
         return []
 
