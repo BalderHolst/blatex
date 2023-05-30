@@ -134,10 +134,11 @@ def copy_template(templatefile: Path | str, destination: Path | str):
 
 def add_local_config_file(directory: Path, verbose=False):
 
-    if local_config_file_name in directory.iterdir():
-        if verbose:
-            click.echo(f"No need to initialize {local_config_file_name!r} as it already exists.")
-        return
+    for f in directory.iterdir():
+        if f.name == local_config_file_name:
+            if verbose:
+                click.echo(f"No need to initialize {local_config_file_name!r} as it already exists.")
+            return
 
     if verbose:
         click.echo("Using default configuration file.")
