@@ -75,7 +75,7 @@ def run_cmd(cmd, verbose=False):
         click.echo(f"Running: {cmd!r} from {str(Path.cwd())!r}.\n")
 
     try:
-        subprocess.run(cmd.split(" "))
+        subprocess.run(cmd, shell=True)
     except FileNotFoundError:
         click.echo(
                 colored(f"Could not execute compiler command: `" + cmd + "`.\n\nIs `" + cmd.split()[0] + "` installed and executable?", "red")
