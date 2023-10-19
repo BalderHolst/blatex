@@ -1,0 +1,3 @@
+[submodule "libs/texlog"]
+	path = libs/texlog
+	url = git@github.com:BalderHolst/texlog
