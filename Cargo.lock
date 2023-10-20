@@ -85,6 +85,7 @@ version = "0.1.0"
 dependencies = [
  "clap",
  "directories",
+ "termion",
  "texlog",
  "zip",
 ]
@@ -540,6 +541,7 @@ dependencies = [
 [[package]]
 name = "texlog"
 version = "0.1.0"
+source = "git+https://github.com/BalderHolst/texlog#1cd885c22299655d37451a5a9c3b66694bb4d5a8"
 dependencies = [
  "clap",
  "termion",
