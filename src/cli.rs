@@ -16,13 +16,15 @@ pub enum Command {
 
     /// Compile latex document
     Compile {
-
         #[clap(index = 1)]
         file: Option<String>,
     },
 
     /// Clean temporary files
-    Clean,
+    Clean {
+        #[clap(index = 1)]
+        file: Option<String>,
+    },
 
     /// Show errors and warnings from the last compilation
     Errors,
