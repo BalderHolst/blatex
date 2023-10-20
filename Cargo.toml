@@ -7,6 +7,8 @@ edition = "2021"
 [dependencies]
 clap = { version = "4.4.6", features = ["derive"] }
 directories = "5.0.1"
+fuzzy_finder = "0.3.2"
 termion = "2.0.1"
 texlog = { git = "https://github.com/BalderHolst/texlog" }
 zip = "0.6.6"
+zip-extract = "0.1.2"

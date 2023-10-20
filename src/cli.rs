@@ -12,22 +12,28 @@ pub struct Args {
 #[derive(Subcommand)]
 pub enum Command {
     /// Initialize latex document with a template
-    Init,
+    Init {
+        /// Name of a template to use
+        #[arg(short, long)]
+        template: Option<String>,
+    },
 
     /// Compile latex document
     Compile {
+        /// Entry point for the latex compiler
         #[clap(index = 1)]
-        file: Option<String>,
+        main_file: Option<String>,
     },
 
     /// Clean temporary files
     Clean {
+        /// Entry point for the latex compiler
         #[clap(index = 1)]
-        file: Option<String>,
+        main_file: Option<String>,
     },
 
     /// Show errors and warnings from the last compilation
-    Errors,
+    Log,
 
     /// Commands for managing templates
     Templates {
