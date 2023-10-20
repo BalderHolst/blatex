@@ -15,7 +15,11 @@ pub enum Command {
     Init,
 
     /// Compile latex document
-    Compile,
+    Compile {
+
+        #[clap(index = 1)]
+        file: Option<String>,
+    },
 
     /// Clean temporary files
     Clean,
