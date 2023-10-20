@@ -5,6 +5,8 @@ use std::{
     process::exit,
 };
 
+use termion::{color::{self, Fg}, style};
+
 fn copy_dir_all(src: impl AsRef<Path>, dst: impl AsRef<Path>) -> io::Result<()> {
     fs::create_dir_all(&dst)?;
     for entry in fs::read_dir(src)? {
@@ -19,6 +21,8 @@ fn copy_dir_all(src: impl AsRef<Path>, dst: impl AsRef<Path>) -> io::Result<()> 
     Ok(())
 }
 
+// TODO: Glob support
+// TODO: Rename support
 pub fn add_path(path: String, symlink: bool, templates_dir: PathBuf, force: bool) {
     let path = PathBuf::from(path);
     let path_filename = path.file_name().unwrap();
@@ -75,5 +79,33 @@ pub fn add_path(path: String, symlink: bool, templates_dir: PathBuf, force: bool
     } else {
         eprintln!("File `{}` is neither file or directory.", path.display());
         exit(1);
+    }
+}
+
+pub fn list_templates(templates_dir: PathBuf) {
+    list_templates_recursive(templates_dir, 0)
+}
+
+fn list_templates_recursive(dir: PathBuf, level: usize) {
+    for file in fs::read_dir(dir).unwrap() {
+        let path = file.unwrap().path();
+        if path.is_file() {
+            println!(
+                "{}{}",
+                "  ".repeat(level),
+                path.file_name().unwrap().to_str().unwrap(),
+            );
+        } else if path.is_dir() {
+            println!(
+                "{}{}{}{}{}{}",
+                "  ".repeat(level),
+                style::Bold,
+                Fg(color::Blue),
+                path.file_name().unwrap().to_str().unwrap(),
+                Fg(color::Reset),
+                style::Reset,
+            );
+            list_templates_recursive(path, level + 1)
+        }
     }
 }

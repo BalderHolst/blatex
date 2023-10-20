@@ -2,7 +2,6 @@ mod cli;
 mod templates;
 
 use cli::{Command, Opts};
-use templates::add_path;
 
 fn main() {
     let opts = Opts::create();
@@ -19,9 +18,9 @@ fn main() {
                 path,
                 symlink,
                 force,
-            } => add_path(path, symlink, opts.templates_dir, force),
+            } => templates::add_path(path, symlink, opts.templates_dir, force),
             cli::TemplateCommand::AddRepo { url, path } => todo!(),
-            cli::TemplateCommand::List => todo!(),
+            cli::TemplateCommand::List => templates::list_templates(opts.templates_dir),
         },
     }
 }
