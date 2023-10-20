@@ -1,8 +1,10 @@
-mod cli;
-mod templates;
-mod init;
 mod clean;
+mod cli;
 mod compile;
+mod init;
+mod templates;
+
+use std::path::PathBuf;
 
 use cli::{Command, Opts};
 
@@ -21,8 +23,10 @@ fn main() {
                 path,
                 symlink,
                 force,
-            } => templates::add_path(path, symlink, opts.templates_dir, force),
-            cli::TemplateCommand::AddRepo { url, path } => todo!(),
+            } => templates::add_path(PathBuf::from(path), symlink, opts.templates_dir, force),
+            cli::TemplateCommand::AddRepo { url, path, force } => {
+                templates::add_repo(url, path, opts.templates_dir, force, opts.temp_dir)
+            }
             cli::TemplateCommand::List => templates::list_templates(opts.templates_dir),
         },
     }

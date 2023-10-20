@@ -68,6 +68,10 @@ pub enum TemplateCommand {
         /// The path to the template file or directory within the repository
         #[arg(short, long)]
         path: Option<String>,
+
+        /// Override existing templates
+        #[arg(short, long, default_value_t = false)]
+        force: bool,
     },
 
     /// List templates
@@ -81,6 +85,9 @@ pub struct Opts {
     pub data_dir: PathBuf,
     pub templates_dir: PathBuf,
     pub config_dir: PathBuf,
+
+    /// Directory used for temporary files
+    pub temp_dir: PathBuf,
 }
 
 impl Opts {
@@ -90,11 +97,13 @@ impl Opts {
         let data_dir = proj_dirs.data_dir().to_path_buf();
         let templates_dir = data_dir.join("templates");
         let config_dir = proj_dirs.config_dir().to_path_buf();
+        let temp_dir = proj_dirs.cache_dir().join("tmp");
         Self {
             args,
             data_dir,
             templates_dir,
             config_dir,
+            temp_dir,
         }
     }
 }
