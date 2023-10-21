@@ -1,8 +1,8 @@
 mod clean;
-mod opts;
 mod compile;
 mod config;
 mod init;
+mod opts;
 mod templates;
 
 use std::path::PathBuf;

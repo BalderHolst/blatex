@@ -53,6 +53,7 @@ pub enum Command {
         #[clap(subcommand)]
         config_command: ConfigCommand,
 
+        /// Opterate on the global config instead of the local
         #[arg(short, long, default_value_t = false)]
         global: bool,
     },
