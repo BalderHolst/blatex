@@ -1,6 +1,6 @@
 use std::{fs, process::exit};
 
-use crate::cli::{self, Config};
+use crate::opts::Config;
 
 pub const LOCAL_CONFIG_FILE: &str = ".blatex.toml";
 
@@ -48,7 +48,7 @@ pub fn create(global: bool, force: bool) {
     );
 }
 
-pub fn show(config: cli::Config, global: bool) {
+pub fn show(config: Config, global: bool) {
     let config = if global { Config::new_global() } else { config };
     println!("{}", toml::to_string_pretty(&config).unwrap());
 }

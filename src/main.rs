@@ -1,5 +1,5 @@
 mod clean;
-mod cli;
+mod opts;
 mod compile;
 mod config;
 mod init;
@@ -7,7 +7,7 @@ mod templates;
 
 use std::path::PathBuf;
 
-use cli::{Command, Opts};
+use opts::{Command, Opts};
 
 fn main() {
     let opts = Opts::create();
@@ -20,7 +20,7 @@ fn main() {
         Command::Clean { main_file } => clean::clean(main_file),
         Command::Log => todo!(),
         Command::Templates { template_command } => match template_command {
-            cli::TemplateCommand::Add {
+            opts::TemplateCommand::Add {
                 path,
                 symlink,
                 force,
@@ -30,21 +30,21 @@ fn main() {
                 opts.config.templates_dir,
                 force,
             ),
-            cli::TemplateCommand::AddRepo { url, path, force } => templates::add_repo(
+            opts::TemplateCommand::AddRepo { url, path, force } => templates::add_repo(
                 url,
                 path,
                 opts.config.templates_dir,
                 force,
                 opts.config.temp_dir,
             ),
-            cli::TemplateCommand::List => templates::list_templates(opts.config.templates_dir),
+            opts::TemplateCommand::List => templates::list_templates(opts.config.templates_dir),
         },
         Command::Config {
             config_command,
             global,
         } => match config_command {
-            cli::ConfigCommand::Create { force } => config::create(global, force),
-            cli::ConfigCommand::Show => config::show(opts.config, global),
+            opts::ConfigCommand::Create { force } => config::create(global, force),
+            opts::ConfigCommand::Show => config::show(opts.config, global),
         },
     }
 }
