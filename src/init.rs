@@ -1,4 +1,4 @@
-use std::{path::PathBuf, fs, io::Cursor};
+use std::{fs, io::Cursor, path::PathBuf};
 
 use fuzzy_finder::item::Item;
 

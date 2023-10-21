@@ -1,9 +1,9 @@
 mod clean;
 mod cli;
 mod compile;
+mod config;
 mod init;
 mod templates;
-mod config;
 
 use std::path::PathBuf;
 
@@ -24,15 +24,27 @@ fn main() {
                 path,
                 symlink,
                 force,
-            } => templates::add_path(PathBuf::from(path), symlink, opts.config.templates_dir, force),
-            cli::TemplateCommand::AddRepo { url, path, force } => {
-                templates::add_repo(url, path, opts.config.templates_dir, force, opts.config.temp_dir)
-            }
+            } => templates::add_path(
+                PathBuf::from(path),
+                symlink,
+                opts.config.templates_dir,
+                force,
+            ),
+            cli::TemplateCommand::AddRepo { url, path, force } => templates::add_repo(
+                url,
+                path,
+                opts.config.templates_dir,
+                force,
+                opts.config.temp_dir,
+            ),
             cli::TemplateCommand::List => templates::list_templates(opts.config.templates_dir),
         },
-        Command::Config { config_command, global } => match config_command {
+        Command::Config {
+            config_command,
+            global,
+        } => match config_command {
             cli::ConfigCommand::Create { force } => config::create(global, force),
             cli::ConfigCommand::Show => config::show(opts.config, global),
-        }
+        },
     }
 }

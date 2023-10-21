@@ -1,9 +1,4 @@
-use std::{
-    collections::HashMap,
-    ffi::OsStr,
-    fs,
-    path::{Path, PathBuf},
-};
+use std::{collections::HashMap, fs, path::PathBuf};
 
 use clap::{Parser, Subcommand};
 use directories::ProjectDirs;
@@ -111,7 +106,7 @@ pub enum ConfigCommand {
     Show,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Config {
     /// Directory for application data
     pub data_dir: PathBuf,
@@ -162,11 +157,13 @@ impl Config {
     pub fn new_global() -> Self {
         let mut config = Config::default();
 
-        let global_toml = fs::read_to_string(&config.config_file).unwrap();
-        let global_config: HashMap<String, toml::Value> =
-            toml::from_str(global_toml.as_str()).unwrap();
+        if config.config_file.is_file() {
+            let global_toml = fs::read_to_string(&config.config_file).unwrap();
+            let global_config: HashMap<String, toml::Value> =
+                toml::from_str(global_toml.as_str()).unwrap();
 
-        Self::override_some_fields(&mut config, global_config);
+            Self::override_some_fields(&mut config, global_config);
+        }
 
         config
     }

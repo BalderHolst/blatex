@@ -17,7 +17,11 @@ pub fn create(global: bool, force: bool) {
         "# This is your local configuration for this project.\n# Options here will override global ones.\n"
     };
 
-    let toml = format!("{}{}", description, toml::to_string_pretty(&config).unwrap());
+    let toml = format!(
+        "{}{}",
+        description,
+        toml::to_string_pretty(&config).unwrap()
+    );
 
     let dest = if global {
         Config::default().config_file
@@ -26,18 +30,25 @@ pub fn create(global: bool, force: bool) {
     };
 
     if !force && dest.exists() {
-        eprintln!("File `{}` already exists. Run with --force to override.", dest.display());
+        eprintln!(
+            "File `{}` already exists. Run with --force to override.",
+            dest.display()
+        );
         exit(1)
     }
 
     // Create directory if it does not exist
     fs::create_dir_all(dest.parent().unwrap()).unwrap();
 
-
     fs::write(&dest, toml).unwrap();
-    println!("Wrote {} default config `{}`", if global { "global" } else { "local" }, dest.display());
+    println!(
+        "Wrote {} default config `{}`",
+        if global { "global" } else { "local" },
+        dest.display()
+    );
 }
 
 pub fn show(config: cli::Config, global: bool) {
+    let config = if global { Config::new_global() } else { config };
     println!("{}", toml::to_string_pretty(&config).unwrap());
 }

@@ -1,4 +1,4 @@
-use termion::color::{Fg, self};
+use termion::color::{self, Fg};
 
 pub fn compile(main_file: Option<String>) {
     // TODO: ask for main file if not provided

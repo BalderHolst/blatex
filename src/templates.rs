@@ -1,6 +1,6 @@
 use std::{
     ffi::OsStr,
-    fs::{self, OpenOptions},
+    fs,
     io, os,
     path::{Path, PathBuf},
     process::{exit, Command},
@@ -121,7 +121,6 @@ pub fn add_repo(
     force: bool,
     tmp_dir: PathBuf,
 ) {
-
     // Path to a temporary directory for cloning repos into.
     let tmp_dir = tmp_dir.join("cloned_repo");
 
@@ -181,7 +180,9 @@ pub fn add_repo(
     };
 
     // The zip archive will have the same name as the repo, but with the .zip extension
-    let archive_path = tmp_dir.join(template_path.file_name().unwrap()).with_extension("zip");
+    let archive_path = tmp_dir
+        .join(template_path.file_name().unwrap())
+        .with_extension("zip");
 
     // Create the zip archive
     zip_extensions::write::zip_create_from_directory(&archive_path, &template_path).unwrap();
@@ -189,4 +190,3 @@ pub fn add_repo(
     // Add the template as a normal local template
     add_path(archive_path, false, templates_dir, force)
 }
-
