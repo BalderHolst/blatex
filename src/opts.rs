@@ -110,6 +110,17 @@ pub enum ConfigCommand {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Config {
+    /// The main entry point for the latex compiler
+    pub main_file: String,
+
+    /// Command for compiling document. <main-file> will be substituted with the `main_file`
+    /// configuration field.
+    pub compile_cmd: String,
+
+    /// Command for cleaning temporary document files. <main-file> will be substituted with the `main_file`
+    /// configuration field.
+    pub clean_cmd: String,
+
     /// Directory for application data
     pub data_dir: PathBuf,
 
@@ -136,22 +147,38 @@ impl Default for Config {
             templates_dir,
             config_file: config_dir,
             temp_dir,
+            main_file: "main.tex".to_string(),
+            compile_cmd:
+                "latexmk -pdf -bibtex-cond -shell-escape -interaction=nonstopmode <main-file>"
+                    .to_string(),
+            clean_cmd: "latexmk -c <main-file>".to_string(),
         }
     }
 }
 
 impl Config {
     fn override_some_fields(config: &mut Config, map: HashMap<String, toml::Value>) {
-        Self::override_if_some_string(&mut config.data_dir, map.get("data_dir"));
-        Self::override_if_some_string(&mut config.templates_dir, map.get("templates_dir"));
-        Self::override_if_some_string(&mut config.config_file, map.get("config_file"));
-        Self::override_if_some_string(&mut config.temp_dir, map.get("temp_dir"));
+        Self::override_pathbuf_if_some_string(&mut config.data_dir, map.get("data_dir"));
+        Self::override_pathbuf_if_some_string(&mut config.templates_dir, map.get("templates_dir"));
+        Self::override_pathbuf_if_some_string(&mut config.config_file, map.get("config_file"));
+        Self::override_pathbuf_if_some_string(&mut config.temp_dir, map.get("temp_dir"));
+        Self::override_if_some_string(&mut config.main_file, map.get("main_file"));
+        Self::override_if_some_string(&mut config.compile_cmd, map.get("compile_cmd"));
+        Self::override_if_some_string(&mut config.clean_cmd, map.get("clean_cmd"));
     }
 
-    fn override_if_some_string(var: &mut PathBuf, value: Option<&toml::Value>) {
+    fn override_pathbuf_if_some_string(var: &mut PathBuf, value: Option<&toml::Value>) {
         if let Some(toml_value) = value {
             if let toml::Value::String(s) = toml_value {
                 *var = PathBuf::from(s);
+            }
+        }
+    }
+
+    fn override_if_some_string(var: &mut String, value: Option<&toml::Value>) {
+        if let Some(toml_value) = value {
+            if let toml::Value::String(s) = toml_value {
+                *var = s.clone();
             }
         }
     }

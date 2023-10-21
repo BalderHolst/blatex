@@ -2,6 +2,11 @@ use std::{fs, io::Cursor, path::PathBuf};
 
 use fuzzy_finder::item::Item;
 
+use crate::{
+    config::{self, LOCAL_CONFIG_FILE},
+    opts::Config,
+};
+
 fn get_templates<P>(dir: P) -> Vec<PathBuf>
 where
     P: AsRef<std::path::Path>,
@@ -63,5 +68,15 @@ pub fn init(templates_dir: PathBuf, template: Option<String>) {
 
     zip_extract::extract(Cursor::new(archive_bytes), &cwd, true).unwrap();
 
-    crate::compile::compile(None)
+    // Create configuration file if it does not exist
+    let config_file_path = PathBuf::from(LOCAL_CONFIG_FILE);
+    if !config_file_path.exists() {
+        config::create(false, false);
+    }
+
+    // Create new configuration
+    let config = Config::new_local(Some(config_file_path));
+
+    // Compile document with the new configuration
+    crate::compile::compile(config.compile_cmd, config.main_file);
 }

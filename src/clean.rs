@@ -1,9 +1,9 @@
 use termion::color::{self, Fg};
 
-pub fn clean(main_file: Option<String>) {
-    // TODO: ask for main file if not provided
-    let main_file = main_file.unwrap_or("main.tex".to_string());
-    let cmd = format!("latexmk -c {}", main_file);
+use crate::utils;
+
+pub fn clean(clean_cmd: String, main_file: String) {
+    let cmd = utils::replace_text(clean_cmd, "<main-file>", main_file.as_str());
 
     println!(
         "{}Running command: `{}`{}\n",

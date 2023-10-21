@@ -1,13 +1,9 @@
 use termion::color::{self, Fg};
 
-pub fn compile(main_file: Option<String>) {
-    // TODO: ask for main file if not provided
-    let main_file = main_file.unwrap_or("main.tex".to_string());
+use crate::utils;
 
-    let cmd = format!(
-        "latexmk -pdf -bibtex-cond -shell-escape -interaction=nonstopmode {}",
-        main_file
-    );
+pub fn compile(compile_cmd: String, main_file: String) {
+    let cmd = utils::replace_text(compile_cmd, "<main-file>", main_file.as_str());
 
     println!(
         "{}Running command: `{}`{}\n",

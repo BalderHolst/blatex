@@ -4,6 +4,7 @@ mod config;
 mod init;
 mod opts;
 mod templates;
+mod utils;
 
 use std::path::PathBuf;
 
@@ -16,8 +17,18 @@ fn main() {
     // matches just as you would the top level cmd
     match opts.args.command {
         Command::Init { template } => init::init(opts.config.templates_dir, template),
-        Command::Compile { main_file } => compile::compile(main_file),
-        Command::Clean { main_file } => clean::clean(main_file),
+        Command::Compile {
+            main_file: cli_main_file,
+        } => compile::compile(
+            opts.config.compile_cmd,
+            cli_main_file.unwrap_or(opts.config.main_file),
+        ),
+        Command::Clean {
+            main_file: cli_main_file,
+        } => clean::clean(
+            opts.config.clean_cmd,
+            cli_main_file.unwrap_or(opts.config.main_file),
+        ),
         Command::Log => todo!(),
         Command::Templates { template_command } => match template_command {
             opts::TemplateCommand::Add {
