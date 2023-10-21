@@ -12,7 +12,7 @@ pub struct Args {
     pub command: Command,
 
     /// Path to local configuration file
-    #[arg(short, long)]
+    #[arg(short('C'), long)]
     config_path: Option<String>,
 }
 
@@ -48,6 +48,7 @@ pub enum Command {
         template_command: TemplateCommand,
     },
 
+    /// Manage blatex configuration
     Config {
         #[clap(subcommand)]
         config_command: ConfigCommand,
