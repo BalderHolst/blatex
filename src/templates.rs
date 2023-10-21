@@ -90,25 +90,32 @@ pub fn list_templates(templates_dir: PathBuf) {
 }
 
 fn list_templates_recursive(dir: PathBuf, level: usize) {
-    for file in fs::read_dir(dir).unwrap() {
-        let path = file.unwrap().path();
-        if path.is_file() {
-            println!(
-                "{}{}",
-                "  ".repeat(level),
-                path.file_name().unwrap().to_str().unwrap(),
-            );
-        } else if path.is_dir() {
-            println!(
-                "{}{}{}{}{}{}",
-                "  ".repeat(level),
-                style::Bold,
-                Fg(color::Blue),
-                path.file_name().unwrap().to_str().unwrap(),
-                Fg(color::Reset),
-                style::Reset,
-            );
-            list_templates_recursive(path, level + 1)
+    match fs::read_dir(dir) {
+        Ok(read_dir) => {
+            for file in read_dir {
+                let path = file.unwrap().path();
+                if path.is_file() {
+                    println!(
+                        "{}{}",
+                        "  ".repeat(level),
+                        path.file_name().unwrap().to_str().unwrap(),
+                    );
+                } else if path.is_dir() {
+                    println!(
+                        "{}{}{}{}{}{}",
+                        "  ".repeat(level),
+                        style::Bold,
+                        Fg(color::Blue),
+                        path.file_name().unwrap().to_str().unwrap(),
+                        Fg(color::Reset),
+                        style::Reset,
+                    );
+                    list_templates_recursive(path, level + 1)
+                }
+            }
+        }
+        Err(_) => {
+            println!("No templates found.")
         }
     }
 }
