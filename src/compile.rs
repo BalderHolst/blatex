@@ -1,6 +1,6 @@
 use termion::color::{self, Fg};
 
-use crate::utils;
+use crate::{log, utils};
 
 pub fn compile(compile_cmd: String, main_file: String) {
     let cmd = utils::replace_text(compile_cmd, "<main-file>", main_file.as_str());
@@ -32,7 +32,6 @@ pub fn compile(compile_cmd: String, main_file: String) {
                     code,
                     Fg(color::Reset)
                 );
-                std::process::exit(1)
             }
         }
         None => {
@@ -40,4 +39,7 @@ pub fn compile(compile_cmd: String, main_file: String) {
             std::process::exit(1)
         }
     };
+
+    // Parse log file
+    log::print_log(main_file);
 }

@@ -2,6 +2,7 @@ mod clean;
 mod compile;
 mod config;
 mod init;
+mod log;
 mod opts;
 mod templates;
 mod utils;
@@ -29,7 +30,7 @@ fn main() {
             opts.config.clean_cmd,
             cli_main_file.unwrap_or(opts.config.main_file),
         ),
-        Command::Log => todo!(),
+        Command::Log => log::print_log(opts.config.main_file),
         Command::Templates { template_command } => match template_command {
             opts::TemplateCommand::Add {
                 path,
