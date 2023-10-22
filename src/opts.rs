@@ -40,7 +40,11 @@ pub enum Command {
     },
 
     /// Show errors and warnings from the last compilation
-    Log,
+    Log {
+        /// Log file to show errors for
+        #[clap(index = 1)]
+        log_file: Option<String>,
+    },
 
     /// Commands for managing templates
     Templates {
