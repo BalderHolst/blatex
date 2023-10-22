@@ -10,7 +10,7 @@ directories = "5.0.1"
 fuzzy_finder = "0.3.2"
 serde = { version = "1.0.189", features = ["derive"] }
 termion = "2.0.1"
-texlog = { path = "./texlog" }
+texlog = { git = "https://github.com/BalderHolst/texlog" }
 toml = "0.8.2"
 zip = "0.6.6"
 zip-extensions = "0.6.2"
