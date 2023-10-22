@@ -68,8 +68,8 @@ pub enum TemplateCommand {
     // Add a local file or directory to templates
     Add {
         /// The path to a zip-file or directory of zip-files
-        #[clap(index = 1)]
-        path: String,
+        #[arg(required = true)]
+        paths: Vec<String>,
 
         /// Symlink instead of copying files to templates directory
         #[arg(long, default_value_t = false)]

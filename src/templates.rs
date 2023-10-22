@@ -26,7 +26,13 @@ fn copy_dir_all(src: impl AsRef<Path>, dst: impl AsRef<Path>) -> io::Result<()> 
 
 // TODO: Glob support
 // TODO: Rename support
-pub fn add_path(path: PathBuf, symlink: bool, templates_dir: PathBuf, force: bool) {
+pub fn add_paths(paths: Vec<String>, symlink: bool, templates_dir: PathBuf, force: bool) {
+    for p in paths {
+        add_path(PathBuf::from(p), symlink, &templates_dir, force);
+    }
+}
+
+fn add_path(path: PathBuf, symlink: bool, templates_dir: &PathBuf, force: bool) {
     let path = PathBuf::from(path);
     let path_filename = path.file_name().unwrap();
 
@@ -194,5 +200,5 @@ pub fn add_repo(
     zip_extensions::write::zip_create_from_directory(&archive_path, &template_path).unwrap();
 
     // Add the template as a normal local template
-    add_path(archive_path, false, templates_dir, force)
+    add_path(archive_path, false, &templates_dir, force)
 }

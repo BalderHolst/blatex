@@ -7,8 +7,6 @@ mod opts;
 mod templates;
 mod utils;
 
-use std::path::PathBuf;
-
 use opts::{Command, Opts};
 
 fn main() {
@@ -33,11 +31,11 @@ fn main() {
         Command::Log { log_file } => log::print_log(log_file.unwrap_or(opts.config.main_file)),
         Command::Templates { template_command } => match template_command {
             opts::TemplateCommand::Add {
-                path,
+                paths,
                 symlink,
                 force,
-            } => templates::add_path(
-                PathBuf::from(path),
+            } => templates::add_paths(
+                paths,
                 symlink,
                 opts.config.templates_dir,
                 force,
