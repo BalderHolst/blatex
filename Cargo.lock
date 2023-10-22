@@ -678,7 +678,6 @@ dependencies = [
 [[package]]
 name = "texlog"
 version = "0.1.0"
-source = "git+https://github.com/BalderHolst/texlog#7627ca86cbc7ea8fb7041d7ca8b53174fcd8b00b"
 dependencies = [
  "clap",
  "termion 2.0.1",
