@@ -1,6 +1,6 @@
 use termion::color::{self, Fg};
 
-use crate::{log, utils, opts::Config};
+use crate::{log, opts::Config, utils};
 
 pub fn compile(config: Config, main_file: &String) {
     let cmd = utils::replace_text(&config.compile_cmd, "<main-file>", main_file.as_str());

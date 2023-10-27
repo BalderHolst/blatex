@@ -1,4 +1,4 @@
-use std::{fs, process::exit, path::PathBuf};
+use std::{fs, path::PathBuf, process::exit};
 
 use crate::opts::Config;
 

@@ -20,20 +20,14 @@ fn main() {
             main_file: cli_main_file,
         } => {
             let main_file = cli_main_file.unwrap_or(opts.config.main_file.clone());
-            compile::compile(
-                    opts.config,
-                    &main_file,
-                )
-        },
+            compile::compile(opts.config, &main_file)
+        }
         Command::Clean {
             main_file: cli_main_file,
         } => {
             let main_file = cli_main_file.unwrap_or(opts.config.main_file.clone());
-            clean::clean(
-                    opts.config,
-                    &main_file,
-                )
-        },
+            clean::clean(opts.config, &main_file)
+        }
         Command::Log { log_file } => log::print_log(&log_file.unwrap_or(opts.config.main_file)),
         Command::Templates { template_command } => match template_command {
             opts::TemplateCommand::Add {
@@ -41,13 +35,9 @@ fn main() {
                 symlink,
                 force,
             } => templates::add_paths(opts.cwd, opts.config, paths, symlink, force),
-            opts::TemplateCommand::AddRepo { url, path, force } => templates::add_repo(
-                opts.cwd,
-                opts.config,
-                url,
-                path,
-                force,
-            ),
+            opts::TemplateCommand::AddRepo { url, path, force } => {
+                templates::add_repo(opts.cwd, opts.config, url, path, force)
+            }
             opts::TemplateCommand::List => templates::list_templates(opts.config),
         },
         Command::Config {

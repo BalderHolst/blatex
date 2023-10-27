@@ -129,13 +129,7 @@ fn list_templates_recursive(dir: PathBuf, level: usize) {
     }
 }
 
-pub fn add_repo(
-    cwd: PathBuf,
-    config: Config,
-    url: String,
-    path: Option<String>,
-    force: bool,
-) {
+pub fn add_repo(cwd: PathBuf, config: Config, url: String, path: Option<String>, force: bool) {
     // Path to a temporary directory for cloning repos into.
     let tmp_dir = config.templates_dir.join("cloned_repo");
 

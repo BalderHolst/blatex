@@ -1,6 +1,6 @@
 use termion::color::{self, Fg};
 
-use crate::{utils, opts::Config};
+use crate::{opts::Config, utils};
 
 pub fn clean(config: Config, main_file: &String) {
     let cmd = utils::replace_text(&config.clean_cmd, "<main-file>", main_file.as_str());

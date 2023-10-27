@@ -206,9 +206,7 @@ impl Config {
 
         let default_config = local_config_file.is_none();
 
-        let local_config_file = local_config_file.unwrap_or({
-            cwd.join(LOCAL_CONFIG_FILE)
-        });
+        let local_config_file = local_config_file.unwrap_or({ cwd.join(LOCAL_CONFIG_FILE) });
 
         if let Ok(toml) = fs::read_to_string(&local_config_file) {
             let local_config: HashMap<String, toml::Value> = toml::from_str(toml.as_str()).unwrap();
