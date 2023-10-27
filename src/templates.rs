@@ -10,6 +10,8 @@ use termion::{
     style,
 };
 
+use crate::utils::get_cwd;
+
 fn copy_dir_all(src: impl AsRef<Path>, dst: impl AsRef<Path>) -> io::Result<()> {
     fs::create_dir_all(&dst)?;
     for entry in fs::read_dir(src)? {
@@ -62,7 +64,7 @@ fn add_path(path: PathBuf, symlink: bool, templates_dir: &PathBuf, force: bool) 
 
     // This works for both paths and directories
     if symlink {
-        os::unix::fs::symlink(std::env::current_dir().unwrap().join(path), dest).unwrap();
+        os::unix::fs::symlink(get_cwd().join(path), dest).unwrap();
         return;
     }
 
@@ -74,14 +76,14 @@ fn add_path(path: PathBuf, symlink: bool, templates_dir: &PathBuf, force: bool) 
         fs::create_dir_all(templates_dir.as_path()).unwrap();
 
         if symlink {
-            os::unix::fs::symlink(std::env::current_dir().unwrap().join(path), dest).unwrap();
+            os::unix::fs::symlink(get_cwd().join(path), dest).unwrap();
         } else {
             fs::copy(path.as_path(), dest).unwrap();
         }
     } else if path.is_dir() {
         let dest = templates_dir.join(path.file_name().unwrap());
         if symlink {
-            os::unix::fs::symlink(std::env::current_dir().unwrap().join(path), dest).unwrap();
+            os::unix::fs::symlink(get_cwd().join(path), dest).unwrap();
         } else {
             copy_dir_all(path.as_path(), dest).unwrap();
         }

@@ -5,6 +5,7 @@ use fuzzy_finder::item::Item;
 use crate::{
     config::{self, LOCAL_CONFIG_FILE},
     opts::Config,
+    utils::get_cwd,
 };
 
 fn get_templates<P>(dir: P) -> Vec<PathBuf>
@@ -62,7 +63,7 @@ pub fn init(templates_dir: PathBuf, template: Option<String>) {
         }
     };
 
-    let cwd = std::env::current_dir().unwrap();
+    let cwd = get_cwd();
 
     let archive_bytes = fs::read(template_path).unwrap();
 

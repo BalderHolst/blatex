@@ -1,6 +1,6 @@
 use std::{fs, process::exit};
 
-use crate::opts::Config;
+use crate::{opts::Config, utils::get_cwd};
 
 pub const LOCAL_CONFIG_FILE: &str = ".blatex.toml";
 
@@ -26,7 +26,7 @@ pub fn create(global: bool, force: bool) {
     let dest = if global {
         Config::default().config_file
     } else {
-        std::env::current_dir().unwrap().join(LOCAL_CONFIG_FILE)
+        get_cwd().join(LOCAL_CONFIG_FILE)
     };
 
     if !force && dest.exists() {

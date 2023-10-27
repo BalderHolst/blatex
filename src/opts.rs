@@ -4,7 +4,7 @@ use clap::{Parser, Subcommand};
 use directories::ProjectDirs;
 use serde::{Deserialize, Serialize};
 
-use crate::config::LOCAL_CONFIG_FILE;
+use crate::{config::LOCAL_CONFIG_FILE, utils::get_cwd};
 
 #[derive(Parser)]
 pub struct Args {
@@ -207,7 +207,7 @@ impl Config {
         let default_config = local_config_file.is_none();
 
         let local_config_file = local_config_file.unwrap_or({
-            let cwd = std::env::current_dir().unwrap();
+            let cwd = get_cwd();
             cwd.join(LOCAL_CONFIG_FILE)
         });
 

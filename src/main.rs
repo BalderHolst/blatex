@@ -34,12 +34,7 @@ fn main() {
                 paths,
                 symlink,
                 force,
-            } => templates::add_paths(
-                paths,
-                symlink,
-                opts.config.templates_dir,
-                force,
-            ),
+            } => templates::add_paths(paths, symlink, opts.config.templates_dir, force),
             opts::TemplateCommand::AddRepo { url, path, force } => templates::add_repo(
                 url,
                 path,
