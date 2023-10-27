@@ -78,5 +78,5 @@ pub fn init(cwd: PathBuf, config: Config, template: Option<String>) {
 
     // Compile document with the new configuration
     let main_file = config.main_file.clone();
-    crate::compile::compile(config, &main_file);
+    crate::compile::compile(cwd, config, &main_file);
 }

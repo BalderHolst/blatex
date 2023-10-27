@@ -1,7 +1,7 @@
 use std::{path::PathBuf, process::exit};
 
-pub fn print_log(main_file: &str) {
-    let log_file = PathBuf::from(main_file).with_extension("log");
+pub fn print_log(cwd: PathBuf, main_file: &str) {
+    let log_file = cwd.join(main_file).with_extension("log");
 
     if !log_file.is_file() {
         eprintln!("Cannot find log file `{}`.", log_file.display());

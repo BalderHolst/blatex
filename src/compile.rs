@@ -1,9 +1,14 @@
+use std::path::PathBuf;
+
 use termion::color::{self, Fg};
 
 use crate::{log, opts::Config, utils};
 
-pub fn compile(config: Config, main_file: &String) {
+pub fn compile(cwd: PathBuf, config: Config, main_file: &String) {
     let cmd = utils::replace_text(&config.compile_cmd, "<main-file>", main_file.as_str());
+    let prefix = format!("cd \"{}\"", cwd.display());
+
+    let cmd = prefix + " && " + cmd.as_str();
 
     println!(
         "{}Running command: `{}`{}\n",
@@ -41,5 +46,5 @@ pub fn compile(config: Config, main_file: &String) {
     };
 
     // Parse log file
-    log::print_log(main_file.as_str());
+    log::print_log(cwd, main_file.as_str());
 }

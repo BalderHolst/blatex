@@ -112,7 +112,7 @@ pub enum ConfigCommand {
     Show,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Config {
     /// The main entry point for the latex compiler
     pub main_file: String,
@@ -206,7 +206,7 @@ impl Config {
 
         let default_config = local_config_file.is_none();
 
-        let local_config_file = local_config_file.unwrap_or({ cwd.join(LOCAL_CONFIG_FILE) });
+        let local_config_file = local_config_file.unwrap_or(cwd.join(LOCAL_CONFIG_FILE));
 
         if let Ok(toml) = fs::read_to_string(&local_config_file) {
             let local_config: HashMap<String, toml::Value> = toml::from_str(toml.as_str()).unwrap();
@@ -243,6 +243,16 @@ impl Opts {
         };
         let args = Args::parse();
         let config = Config::new_local(&cwd, args.config_path.clone().map(|s| PathBuf::from(s)));
+        Self { args, config, cwd }
+    }
+}
+
+#[cfg(test)]
+impl Opts {
+    pub fn create_mock(args: Vec<&str>, config: Config, cwd: PathBuf) -> Self {
+        let mut argv = vec!["blatex"];
+        argv.extend(args);
+        let args = Args::parse_from(argv);
         Self { args, config, cwd }
     }
 }
