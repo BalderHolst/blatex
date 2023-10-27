@@ -4,7 +4,7 @@ use clap::{Parser, Subcommand};
 use directories::ProjectDirs;
 use serde::{Deserialize, Serialize};
 
-use crate::{config::LOCAL_CONFIG_FILE, utils::get_cwd};
+use crate::config::LOCAL_CONFIG_FILE;
 
 #[derive(Parser)]
 pub struct Args {
@@ -201,13 +201,12 @@ impl Config {
         config
     }
 
-    pub fn new_local(local_config_file: Option<PathBuf>) -> Self {
+    pub fn new_local(cwd: &PathBuf, local_config_file: Option<PathBuf>) -> Self {
         let mut config = Config::new_global();
 
         let default_config = local_config_file.is_none();
 
         let local_config_file = local_config_file.unwrap_or({
-            let cwd = get_cwd();
             cwd.join(LOCAL_CONFIG_FILE)
         });
 
@@ -237,8 +236,6 @@ pub struct Opts {
 
 impl Opts {
     pub fn create() -> Self {
-        let args = Args::parse();
-        let config = Config::new_local(args.config_path.clone().map(|s| PathBuf::from(s)));
         let cwd = match std::env::current_dir() {
             Ok(d) => d,
             Err(e) => {
@@ -246,6 +243,8 @@ impl Opts {
                 exit(1);
             }
         };
+        let args = Args::parse();
+        let config = Config::new_local(&cwd, args.config_path.clone().map(|s| PathBuf::from(s)));
         Self { args, config, cwd }
     }
 }

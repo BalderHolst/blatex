@@ -5,7 +5,6 @@ use fuzzy_finder::item::Item;
 use crate::{
     config::{self, LOCAL_CONFIG_FILE},
     opts::Config,
-    utils::get_cwd,
 };
 
 fn get_templates<P>(dir: P) -> Vec<PathBuf>
@@ -24,7 +23,7 @@ where
     templates
 }
 
-pub fn init(config: Config, template: Option<String>) {
+pub fn init(cwd: PathBuf, config: Config, template: Option<String>) {
     let templates_dir = &config.templates_dir;
     let templates = get_templates(templates_dir.as_path());
 
@@ -64,8 +63,6 @@ pub fn init(config: Config, template: Option<String>) {
         }
     };
 
-    let cwd = get_cwd();
-
     let archive_bytes = fs::read(template_path).unwrap();
 
     zip_extract::extract(Cursor::new(archive_bytes), &cwd, true).unwrap();
@@ -73,11 +70,11 @@ pub fn init(config: Config, template: Option<String>) {
     // Create configuration file if it does not exist
     let config_file_path = PathBuf::from(LOCAL_CONFIG_FILE);
     if !config_file_path.exists() {
-        config::create(false, false);
+        config::create(&cwd, false, false);
     }
 
     // Create new configuration
-    let config = Config::new_local(Some(config_file_path));
+    let config = Config::new_local(&cwd, Some(config_file_path));
 
     // Compile document with the new configuration
     let main_file = config.main_file.clone();

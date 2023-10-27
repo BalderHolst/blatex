@@ -1,10 +1,10 @@
-use std::{fs, process::exit};
+use std::{fs, process::exit, path::PathBuf};
 
-use crate::{opts::Config, utils::get_cwd};
+use crate::opts::Config;
 
 pub const LOCAL_CONFIG_FILE: &str = ".blatex.toml";
 
-pub fn create(global: bool, force: bool) {
+pub fn create(cwd: &PathBuf, global: bool, force: bool) {
     let config = Config::default();
 
     let description = if global {
@@ -26,7 +26,7 @@ pub fn create(global: bool, force: bool) {
     let dest = if global {
         Config::default().config_file
     } else {
-        get_cwd().join(LOCAL_CONFIG_FILE)
+        cwd.join(LOCAL_CONFIG_FILE)
     };
 
     if !force && dest.exists() {

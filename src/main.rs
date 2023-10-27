@@ -15,7 +15,7 @@ fn main() {
     // You can check for the existence of subcommands, and if found use their
     // matches just as you would the top level cmd
     match opts.args.command {
-        Command::Init { template } => init::init(opts.config, template),
+        Command::Init { template } => init::init(opts.cwd, opts.config, template),
         Command::Compile {
             main_file: cli_main_file,
         } => {
@@ -40,8 +40,9 @@ fn main() {
                 paths,
                 symlink,
                 force,
-            } => templates::add_paths(opts.config, paths, symlink, force),
+            } => templates::add_paths(opts.cwd, opts.config, paths, symlink, force),
             opts::TemplateCommand::AddRepo { url, path, force } => templates::add_repo(
+                opts.cwd,
                 opts.config,
                 url,
                 path,
@@ -53,7 +54,7 @@ fn main() {
             config_command,
             global,
         } => match config_command {
-            opts::ConfigCommand::Create { force } => config::create(global, force),
+            opts::ConfigCommand::Create { force } => config::create(&opts.cwd, global, force),
             opts::ConfigCommand::Show => config::show(opts.config, global),
         },
     }

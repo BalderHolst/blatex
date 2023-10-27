@@ -10,7 +10,7 @@ use termion::{
     style,
 };
 
-use crate::{utils::get_cwd, opts::Config};
+use crate::opts::Config;
 
 fn copy_dir_all(src: impl AsRef<Path>, dst: impl AsRef<Path>) -> io::Result<()> {
     fs::create_dir_all(&dst)?;
@@ -28,13 +28,13 @@ fn copy_dir_all(src: impl AsRef<Path>, dst: impl AsRef<Path>) -> io::Result<()> 
 
 // TODO: Glob support
 // TODO: Rename support
-pub fn add_paths(config: Config, paths: Vec<String>, symlink: bool, force: bool) {
+pub fn add_paths(cwd: PathBuf, config: Config, paths: Vec<String>, symlink: bool, force: bool) {
     for p in paths {
-        add_path(&config, PathBuf::from(p), symlink, force);
+        add_path(&cwd, &config, PathBuf::from(p), symlink, force);
     }
 }
 
-fn add_path(config: &Config, path: PathBuf, symlink: bool, force: bool) {
+fn add_path(cwd: &PathBuf, config: &Config, path: PathBuf, symlink: bool, force: bool) {
     let path = PathBuf::from(path);
     let path_filename = path.file_name().unwrap();
 
@@ -65,7 +65,7 @@ fn add_path(config: &Config, path: PathBuf, symlink: bool, force: bool) {
 
     // This works for both paths and directories
     if symlink {
-        os::unix::fs::symlink(get_cwd().join(path), dest).unwrap();
+        os::unix::fs::symlink(cwd.join(path), dest).unwrap();
         return;
     }
 
@@ -77,14 +77,14 @@ fn add_path(config: &Config, path: PathBuf, symlink: bool, force: bool) {
         fs::create_dir_all(templates_dir.as_path()).unwrap();
 
         if symlink {
-            os::unix::fs::symlink(get_cwd().join(path), dest).unwrap();
+            os::unix::fs::symlink(cwd.join(path), dest).unwrap();
         } else {
             fs::copy(path.as_path(), dest).unwrap();
         }
     } else if path.is_dir() {
         let dest = templates_dir.join(path.file_name().unwrap());
         if symlink {
-            os::unix::fs::symlink(get_cwd().join(path), dest).unwrap();
+            os::unix::fs::symlink(cwd.join(path), dest).unwrap();
         } else {
             copy_dir_all(path.as_path(), dest).unwrap();
         }
@@ -130,6 +130,7 @@ fn list_templates_recursive(dir: PathBuf, level: usize) {
 }
 
 pub fn add_repo(
+    cwd: PathBuf,
     config: Config,
     url: String,
     path: Option<String>,
@@ -202,5 +203,5 @@ pub fn add_repo(
     zip_extensions::write::zip_create_from_directory(&archive_path, &template_path).unwrap();
 
     // Add the template as a normal local template
-    add_path(&config, archive_path, false, force)
+    add_path(&cwd, &config, archive_path, false, force)
 }
