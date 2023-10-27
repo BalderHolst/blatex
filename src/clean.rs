@@ -1,9 +1,9 @@
 use termion::color::{self, Fg};
 
-use crate::utils;
+use crate::{utils, opts::Config};
 
-pub fn clean(clean_cmd: String, main_file: String) {
-    let cmd = utils::replace_text(clean_cmd, "<main-file>", main_file.as_str());
+pub fn clean(config: Config, main_file: &String) {
+    let cmd = utils::replace_text(&config.clean_cmd, "<main-file>", main_file.as_str());
 
     println!(
         "{}Running command: `{}`{}\n",

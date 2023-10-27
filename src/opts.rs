@@ -1,4 +1,4 @@
-use std::{collections::HashMap, fs, path::PathBuf};
+use std::{collections::HashMap, fs, path::PathBuf, process::exit};
 
 use clap::{Parser, Subcommand};
 use directories::ProjectDirs;
@@ -230,14 +230,22 @@ pub struct Opts {
 
     /// Configuration. Options that can be changed by configuration files.
     pub config: Config,
+
+    /// Current Working directory
+    pub cwd: PathBuf,
 }
 
 impl Opts {
     pub fn create() -> Self {
         let args = Args::parse();
-
         let config = Config::new_local(args.config_path.clone().map(|s| PathBuf::from(s)));
-
-        Self { args, config }
+        let cwd = match std::env::current_dir() {
+            Ok(d) => d,
+            Err(e) => {
+                eprintln!("Error getting current directory: {e}");
+                exit(1);
+            }
+        };
+        Self { args, config, cwd }
     }
 }

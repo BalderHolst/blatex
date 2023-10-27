@@ -15,34 +15,39 @@ fn main() {
     // You can check for the existence of subcommands, and if found use their
     // matches just as you would the top level cmd
     match opts.args.command {
-        Command::Init { template } => init::init(opts.config.templates_dir, template),
+        Command::Init { template } => init::init(opts.config, template),
         Command::Compile {
             main_file: cli_main_file,
-        } => compile::compile(
-            opts.config.compile_cmd,
-            cli_main_file.unwrap_or(opts.config.main_file),
-        ),
+        } => {
+            let main_file = cli_main_file.unwrap_or(opts.config.main_file.clone());
+            compile::compile(
+                    opts.config,
+                    &main_file,
+                )
+        },
         Command::Clean {
             main_file: cli_main_file,
-        } => clean::clean(
-            opts.config.clean_cmd,
-            cli_main_file.unwrap_or(opts.config.main_file),
-        ),
-        Command::Log { log_file } => log::print_log(log_file.unwrap_or(opts.config.main_file)),
+        } => {
+            let main_file = cli_main_file.unwrap_or(opts.config.main_file.clone());
+            clean::clean(
+                    opts.config,
+                    &main_file,
+                )
+        },
+        Command::Log { log_file } => log::print_log(&log_file.unwrap_or(opts.config.main_file)),
         Command::Templates { template_command } => match template_command {
             opts::TemplateCommand::Add {
                 paths,
                 symlink,
                 force,
-            } => templates::add_paths(paths, symlink, opts.config.templates_dir, force),
+            } => templates::add_paths(opts.config, paths, symlink, force),
             opts::TemplateCommand::AddRepo { url, path, force } => templates::add_repo(
+                opts.config,
                 url,
                 path,
-                opts.config.templates_dir,
                 force,
-                opts.config.temp_dir,
             ),
-            opts::TemplateCommand::List => templates::list_templates(opts.config.templates_dir),
+            opts::TemplateCommand::List => templates::list_templates(opts.config),
         },
         Command::Config {
             config_command,

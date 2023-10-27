@@ -24,7 +24,8 @@ where
     templates
 }
 
-pub fn init(templates_dir: PathBuf, template: Option<String>) {
+pub fn init(config: Config, template: Option<String>) {
+    let templates_dir = &config.templates_dir;
     let templates = get_templates(templates_dir.as_path());
 
     let template_path = match template {
@@ -79,5 +80,6 @@ pub fn init(templates_dir: PathBuf, template: Option<String>) {
     let config = Config::new_local(Some(config_file_path));
 
     // Compile document with the new configuration
-    crate::compile::compile(config.compile_cmd, config.main_file);
+    let main_file = config.main_file.clone();
+    crate::compile::compile(config, &main_file);
 }

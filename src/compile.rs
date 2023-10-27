@@ -1,9 +1,9 @@
 use termion::color::{self, Fg};
 
-use crate::{log, utils};
+use crate::{log, utils, opts::Config};
 
-pub fn compile(compile_cmd: String, main_file: String) {
-    let cmd = utils::replace_text(compile_cmd, "<main-file>", main_file.as_str());
+pub fn compile(config: Config, main_file: &String) {
+    let cmd = utils::replace_text(&config.compile_cmd, "<main-file>", main_file.as_str());
 
     println!(
         "{}Running command: `{}`{}\n",
@@ -41,5 +41,5 @@ pub fn compile(compile_cmd: String, main_file: String) {
     };
 
     // Parse log file
-    log::print_log(main_file);
+    log::print_log(main_file.as_str());
 }

@@ -10,7 +10,7 @@ use termion::{
     style,
 };
 
-use crate::utils::get_cwd;
+use crate::{utils::get_cwd, opts::Config};
 
 fn copy_dir_all(src: impl AsRef<Path>, dst: impl AsRef<Path>) -> io::Result<()> {
     fs::create_dir_all(&dst)?;
@@ -28,13 +28,13 @@ fn copy_dir_all(src: impl AsRef<Path>, dst: impl AsRef<Path>) -> io::Result<()> 
 
 // TODO: Glob support
 // TODO: Rename support
-pub fn add_paths(paths: Vec<String>, symlink: bool, templates_dir: PathBuf, force: bool) {
+pub fn add_paths(config: Config, paths: Vec<String>, symlink: bool, force: bool) {
     for p in paths {
-        add_path(PathBuf::from(p), symlink, &templates_dir, force);
+        add_path(&config, PathBuf::from(p), symlink, force);
     }
 }
 
-fn add_path(path: PathBuf, symlink: bool, templates_dir: &PathBuf, force: bool) {
+fn add_path(config: &Config, path: PathBuf, symlink: bool, force: bool) {
     let path = PathBuf::from(path);
     let path_filename = path.file_name().unwrap();
 
@@ -43,6 +43,7 @@ fn add_path(path: PathBuf, symlink: bool, templates_dir: &PathBuf, force: bool) 
         exit(1);
     }
 
+    let templates_dir = &config.templates_dir;
     let dest = templates_dir.join(path_filename);
 
     if dest.exists() {
@@ -93,8 +94,8 @@ fn add_path(path: PathBuf, symlink: bool, templates_dir: &PathBuf, force: bool) 
     }
 }
 
-pub fn list_templates(templates_dir: PathBuf) {
-    list_templates_recursive(templates_dir, 0)
+pub fn list_templates(config: Config) {
+    list_templates_recursive(config.templates_dir, 0)
 }
 
 fn list_templates_recursive(dir: PathBuf, level: usize) {
@@ -129,14 +130,13 @@ fn list_templates_recursive(dir: PathBuf, level: usize) {
 }
 
 pub fn add_repo(
+    config: Config,
     url: String,
     path: Option<String>,
-    templates_dir: PathBuf,
     force: bool,
-    tmp_dir: PathBuf,
 ) {
     // Path to a temporary directory for cloning repos into.
-    let tmp_dir = tmp_dir.join("cloned_repo");
+    let tmp_dir = config.templates_dir.join("cloned_repo");
 
     // Clear the directory: Delete it if it exists and recreate it
     if tmp_dir.exists() {
@@ -202,5 +202,5 @@ pub fn add_repo(
     zip_extensions::write::zip_create_from_directory(&archive_path, &template_path).unwrap();
 
     // Add the template as a normal local template
-    add_path(archive_path, false, &templates_dir, force)
+    add_path(&config, archive_path, false, force)
 }
