@@ -12,8 +12,6 @@ use opts::{Command, Opts};
 fn main() {
     let opts = Opts::create();
 
-    // You can check for the existence of subcommands, and if found use their
-    // matches just as you would the top level cmd
     match opts.args.command {
         Command::Init { template } => init::init(opts.cwd, opts.config, template),
         Command::Compile {
