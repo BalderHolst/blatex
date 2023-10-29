@@ -29,7 +29,9 @@ fn run(opts: Opts) {
             let main_file = cli_main_file.unwrap_or(opts.config.main_file.clone());
             clean::clean(opts.config, &main_file)
         }
-        Command::Log { log_file } => log::print_log(opts.cwd, &log_file.unwrap_or(opts.config.main_file)),
+        Command::Log { log_file } => {
+            log::print_log(opts.cwd, &log_file.unwrap_or(opts.config.main_file))
+        }
         Command::Templates { template_command } => match template_command {
             opts::TemplateCommand::Add {
                 paths,
@@ -59,7 +61,10 @@ mod tests {
         opts::{Config, Opts},
         run,
     };
-    use std::{fs, path::{PathBuf, Path}};
+    use std::{
+        fs,
+        path::{Path, PathBuf},
+    };
 
     const TEST_DIR: &str = "./__tmp_test_dir__/";
 
@@ -131,8 +136,16 @@ mod tests {
         #[allow(unused_variables)]
         let (ctx, opts) = setup!("templates", "add", "templates");
         let add_opts = opts.clone();
-        let init_opts = Opts::create_mock(vec!["init", "-t", "templates/minimal"], add_opts.config.clone(), add_opts.cwd.clone());
-        let compile_opts = Opts::create_mock(vec!["compile"], add_opts.config.clone(), add_opts.cwd.clone());
+        let init_opts = Opts::create_mock(
+            vec!["init", "-t", "templates/minimal"],
+            add_opts.config.clone(),
+            add_opts.cwd.clone(),
+        );
+        let compile_opts = Opts::create_mock(
+            vec!["compile"],
+            add_opts.config.clone(),
+            add_opts.cwd.clone(),
+        );
         run(add_opts);
         run(init_opts);
         run(compile_opts);
