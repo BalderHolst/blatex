@@ -53,11 +53,13 @@ fn run(opts: Opts) {
 
 #[cfg(test)]
 mod tests {
+    use serial_test::serial;
+
     use crate::{
         opts::{Config, Opts},
         run,
     };
-    use std::{fs, path::PathBuf};
+    use std::{fs, path::{PathBuf, Path}};
 
     const TEST_DIR: &str = "./__tmp_test_dir__/";
 
@@ -108,11 +110,32 @@ mod tests {
         )
     }
 
+    macro_rules! setup {
+        ($($x:expr),+) => {
+            setup(vec![$($x),+])
+        }
+    }
+
     #[test]
+    #[serial]
     fn test_init() {
         #[allow(unused_variables)]
-        let (ctx, opts) = setup(vec!["compile"]);
+        let (ctx, opts) = setup!("compile");
         fs::copy("./tests/main1.tex", opts.cwd.join("main.tex")).unwrap();
         run(opts);
+    }
+
+    #[test]
+    #[serial]
+    fn test_add_and_compile() {
+        #[allow(unused_variables)]
+        let (ctx, opts) = setup!("templates", "add", "templates");
+        let add_opts = opts.clone();
+        let init_opts = Opts::create_mock(vec!["init", "-t", "templates/minimal"], add_opts.config.clone(), add_opts.cwd.clone());
+        let compile_opts = Opts::create_mock(vec!["compile"], add_opts.config.clone(), add_opts.cwd.clone());
+        run(add_opts);
+        run(init_opts);
+        run(compile_opts);
+        assert!(opts.cwd.join("main.pdf").exists())
     }
 }

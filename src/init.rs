@@ -28,7 +28,7 @@ pub fn init(cwd: PathBuf, config: Config, template: Option<String>) {
     let templates = get_templates(templates_dir.as_path());
 
     let template_path = match template {
-        Some(p) => templates_dir.join(p),
+        Some(p) => templates_dir.join(p).with_extension("zip"),
         None => {
             // Create fuzzy finder items
             let items: Vec<Item<&PathBuf>> = templates
@@ -63,6 +63,7 @@ pub fn init(cwd: PathBuf, config: Config, template: Option<String>) {
         }
     };
 
+    dbg!(&template_path);
     let archive_bytes = fs::read(template_path).unwrap();
 
     zip_extract::extract(Cursor::new(archive_bytes), &cwd, true).unwrap();

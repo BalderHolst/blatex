@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::config::LOCAL_CONFIG_FILE;
 
-#[derive(Parser)]
+#[derive(Parser, Clone)]
 pub struct Args {
     #[command(subcommand)]
     pub command: Command,
@@ -16,7 +16,7 @@ pub struct Args {
     config_path: Option<String>,
 }
 
-#[derive(Subcommand)]
+#[derive(Subcommand, Clone)]
 pub enum Command {
     /// Initialize latex document with a template
     Init {
@@ -63,7 +63,7 @@ pub enum Command {
     },
 }
 
-#[derive(Subcommand)]
+#[derive(Subcommand, Clone)]
 pub enum TemplateCommand {
     // Add a local file or directory to templates
     Add {
@@ -99,7 +99,7 @@ pub enum TemplateCommand {
     List,
 }
 
-#[derive(Subcommand)]
+#[derive(Subcommand, Clone)]
 pub enum ConfigCommand {
     /// Create a local or global configuration file with the default options
     Create {
@@ -221,6 +221,7 @@ impl Config {
     }
 }
 
+#[derive(Clone)]
 pub struct Opts {
     /// CLI arguments.
     pub args: Args,
