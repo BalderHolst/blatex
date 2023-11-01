@@ -27,7 +27,7 @@ fn run(opts: Opts) {
             main_file: cli_main_file,
         } => {
             let main_file = cli_main_file.unwrap_or(opts.config.main_file.clone());
-            clean::clean(opts.config, &main_file)
+            clean::clean(opts.cwd, opts.config, &main_file)
         }
         Command::Log { log_file } => {
             log::print_log(opts.cwd, &log_file.unwrap_or(opts.config.main_file))
@@ -123,11 +123,17 @@ mod tests {
 
     #[test]
     #[serial]
-    fn test_init() {
+    fn test_compile_and_clean() {
         #[allow(unused_variables)]
         let (ctx, opts) = setup!("compile");
         fs::copy("./tests/main1.tex", opts.cwd.join("main.tex")).unwrap();
-        run(opts);
+        run(opts.clone());
+        assert!(opts.cwd.join("main.log").exists());
+        assert!(opts.cwd.join("main.out").exists());
+        let clean_opts = Opts::create_mock(vec!["clean"], opts.config, opts.cwd);
+        run(clean_opts.clone());
+        assert!(!clean_opts.cwd.join("main.log").exists());
+        assert!(!clean_opts.cwd.join("main.out").exists());
     }
 
     #[test]
