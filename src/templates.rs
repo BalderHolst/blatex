@@ -77,7 +77,6 @@ where
 
 /// Search for a template with a name
 pub fn search_templates<'a>(
-    templates_dir: &PathBuf,
     name: &String,
     templates: &'a Vec<Template>,
 ) -> Option<&'a Template> {
@@ -85,7 +84,7 @@ pub fn search_templates<'a>(
     for t in templates {
         match t {
             Template::Local(p) => {
-                if p.strip_prefix(templates_dir).unwrap() == name_path.with_extension("zip") {
+                if p == &name_path.with_extension("zip") {
                     return Some(t);
                 }
             }
