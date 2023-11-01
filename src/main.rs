@@ -16,40 +16,20 @@ fn main() {
 
 fn run(opts: Opts) {
     match opts.args.command {
-        Command::Init { template } => init::init(opts.cwd, opts.config, template),
-        Command::Compile {
-            main_file: cli_main_file,
-        } => {
-            let main_file = cli_main_file.unwrap_or(opts.config.main_file.clone());
-            compile::compile(opts.cwd, opts.config, &main_file)
-        }
-        Command::Clean {
-            main_file: cli_main_file,
-        } => {
-            let main_file = cli_main_file.unwrap_or(opts.config.main_file.clone());
-            clean::clean(opts.cwd, opts.config, &main_file)
-        }
-        Command::Log { log_file } => {
-            log::print_log(opts.cwd, &log_file.unwrap_or(opts.config.main_file))
-        }
-        Command::Templates { template_command } => match template_command {
-            opts::TemplateCommand::Add {
-                paths,
-                symlink,
-                force,
-                rename,
-            } => templates::add_paths(opts.cwd, opts.config, paths, symlink, force, rename),
-            opts::TemplateCommand::AddRepo { url, path, force } => {
-                templates::add_repo(opts.cwd, opts.config, url, path, force)
+        Command::Init(args) => init::init(opts.cwd, opts.config, args),
+        Command::Compile(args) => compile::compile(opts.cwd, opts.config, args),
+        Command::Clean(args) => clean::clean(opts.cwd, opts.config, args),
+        Command::Log(args) => log::print_log(opts.cwd, &args.log_file.unwrap_or(opts.config.main_file)),
+        Command::Templates(args) => match args.template_command {
+            opts::TemplateCommand::Add(args) => templates::add_paths(opts.cwd, opts.config, args),
+            opts::TemplateCommand::AddRepo(args) => {
+                templates::add_repo(opts.cwd, opts.config, args)
             }
             opts::TemplateCommand::List => templates::list_templates(opts.config),
         },
-        Command::Config {
-            config_command,
-            global,
-        } => match config_command {
-            opts::ConfigCommand::Create { force } => config::create(&opts.cwd, global, force),
-            opts::ConfigCommand::Show => config::show(opts.config, global),
+        Command::Config(args) => match &args.config_command {
+            opts::ConfigCommand::Create(create_args) => config::create(&opts.cwd, args.global, create_args),
+            opts::ConfigCommand::Show => config::show(opts.config, args.global),
         },
     }
 }

@@ -5,7 +5,7 @@ use termion::color;
 
 use crate::{
     config::{self, LOCAL_CONFIG_FILE},
-    opts::{Config, RemoteTemplate},
+    opts::{Config, RemoteTemplate, InitArgs, ConfigCreateArgs},
     templates::{self, Template},
     utils,
 };
@@ -39,11 +39,11 @@ fn copy_directory(src: &PathBuf, dest: &PathBuf) {
     }
 }
 
-pub fn init(cwd: PathBuf, config: Config, template: Option<String>) {
+pub fn init(cwd: PathBuf, config: Config, args: InitArgs) {
     let templates_dir = &config.templates_dir;
     let templates = templates::get_templates(templates_dir.as_path(), &config.remote_templates);
 
-    let template_path = match template {
+    let template_path = match args.template {
         Some(t) => match templates::search_templates(&t, &templates) {
             Some(Template::Local(p)) => p.clone(),
             Some(Template::Remote(name, remote)) => {
@@ -104,7 +104,9 @@ pub fn init(cwd: PathBuf, config: Config, template: Option<String>) {
     // Create configuration file if it does not exist
     let config_file_path = PathBuf::from(LOCAL_CONFIG_FILE);
     if !config_file_path.exists() {
-        config::create(&cwd, false, false);
+        config::create(&cwd, false, &ConfigCreateArgs {
+            force: false,
+        });
     }
 
     // Create new configuration
@@ -112,5 +114,5 @@ pub fn init(cwd: PathBuf, config: Config, template: Option<String>) {
 
     // Compile document with the new configuration
     let main_file = config.main_file.clone();
-    crate::compile::compile(cwd, config, &main_file);
+    crate::compile::compile_file(cwd, config, &main_file);
 }

@@ -12,7 +12,7 @@ use termion::{
 };
 
 use crate::{
-    opts::{Config, RemoteTemplate},
+    opts::{Config, RemoteTemplate, TemplateAddArgs, TemplateAddRepoArgs},
     utils,
 };
 
@@ -76,10 +76,7 @@ where
 }
 
 /// Search for a template with a name
-pub fn search_templates<'a>(
-    name: &String,
-    templates: &'a Vec<Template>,
-) -> Option<&'a Template> {
+pub fn search_templates<'a>(name: &String, templates: &'a Vec<Template>) -> Option<&'a Template> {
     let name_path = PathBuf::from(&name);
     for t in templates {
         match t {
@@ -112,27 +109,20 @@ fn copy_dir_all(src: impl AsRef<Path>, dst: impl AsRef<Path>) -> io::Result<()> 
     Ok(())
 }
 
-pub fn add_paths(
-    cwd: PathBuf,
-    config: Config,
-    paths: Vec<String>,
-    symlink: bool,
-    force: bool,
-    rename: Option<String>,
-) {
-    if rename.is_some() && paths.len() != 1 {
+pub fn add_paths(cwd: PathBuf, config: Config, args: TemplateAddArgs) {
+    if args.rename.is_some() && args.paths.len() != 1 {
         eprintln!("Cannot rename when adding more than one file or directory.");
         exit(1)
     }
 
-    for p in paths {
+    for p in args.paths {
         add_path(
             &cwd,
             &config,
             PathBuf::from(p),
-            symlink,
-            force,
-            rename.as_ref(),
+            args.symlink,
+            args.force,
+            args.rename.as_ref(),
         );
     }
 }
@@ -254,18 +244,18 @@ fn _list_templates_recursive(dir: PathBuf, level: usize) {
     }
 }
 
-pub fn add_repo(cwd: PathBuf, config: Config, url: String, path: Option<String>, force: bool) {
+pub fn add_repo(cwd: PathBuf, config: Config, args: TemplateAddRepoArgs) {
     // TODO: support branches
-    let cloned_repo_root = utils::clone_repo(&config.temp_dir, url.as_str(), None);
+    let cloned_repo_root = utils::clone_repo(&config.temp_dir, args.url.as_str(), None);
 
     // Handle that the user may provide a path within repo as the template
-    let template_path = match path {
+    let template_path = match args.path {
         Some(sub_path) => {
             let p = cloned_repo_root.join(&sub_path);
             if !p.is_dir() {
                 eprintln!(
                     "Path `{}` is not a directory within repository at `{}`.",
-                    sub_path, url
+                    sub_path, args.url
                 );
                 exit(1);
             }
@@ -284,5 +274,5 @@ pub fn add_repo(cwd: PathBuf, config: Config, url: String, path: Option<String>,
     zip_extensions::write::zip_create_from_directory(&archive_path, &template_path).unwrap();
 
     // Add the template as a normal local template
-    add_path(&cwd, &config, archive_path, false, force, None)
+    add_path(&cwd, &config, archive_path, false, args.force, None)
 }

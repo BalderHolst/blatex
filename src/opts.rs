@@ -21,101 +21,128 @@ pub struct Args {
 #[derive(Subcommand, Clone)]
 pub enum Command {
     /// Initialize latex document with a template
-    Init {
-        /// Name of a template to use
-        #[arg(short, long)]
-        template: Option<String>,
-    },
+    Init(InitArgs),
 
     /// Compile latex document
-    Compile {
-        /// Entry point for the latex compiler
-        #[clap(index = 1)]
-        main_file: Option<String>,
-    },
+    Compile(CompileArgs),
 
     /// Clean temporary files
-    Clean {
-        /// Entry point for the latex compiler
-        #[clap(index = 1)]
-        main_file: Option<String>,
-    },
+    Clean(CleanArgs),
 
     /// Show errors and warnings from the last compilation
-    Log {
-        /// Log file to show errors for
-        #[clap(index = 1)]
-        log_file: Option<String>,
-    },
+    Log(LogArgs),
 
     /// Commands for managing templates
-    Templates {
-        #[clap(subcommand)]
-        template_command: TemplateCommand,
-    },
+    Templates(TemplateArgs),
 
     /// Manage blatex configuration
-    Config {
-        #[clap(subcommand)]
-        config_command: ConfigCommand,
+    Config(ConfigArgs),
+}
 
-        /// Opterate on the global config instead of the local
-        #[arg(short, long, default_value_t = false)]
-        global: bool,
-    },
+#[derive(Clone, clap::Args)]
+pub struct InitArgs {
+    /// Name of a template to use
+    #[arg(short, long)]
+    pub template: Option<String>,
+}
+
+#[derive(Clone, clap::Args)]
+pub struct CompileArgs {
+    /// Entry point for the latex compiler
+    #[clap(index = 1)]
+    pub main_file: Option<String>,
+}
+
+#[derive(Clone, clap::Args)]
+pub struct CleanArgs {
+    /// Entry point for the latex compiler
+    #[clap(index = 1)]
+    pub main_file: Option<String>,
+}
+
+#[derive(Clone, clap::Args)]
+pub struct LogArgs {
+    /// Log file to show errors for
+    #[clap(index = 1)]
+    pub log_file: Option<String>,
+}
+
+#[derive(Clone, clap::Args)]
+pub struct TemplateArgs {
+    #[clap(subcommand)]
+    pub template_command: TemplateCommand,
+}
+
+#[derive(Clone, clap::Args)]
+pub struct ConfigArgs {
+    #[clap(subcommand)]
+    pub config_command: ConfigCommand,
+
+    /// Opterate on the global config instead of the local
+    #[arg(short, long, default_value_t = false)]
+    pub global: bool,
 }
 
 #[derive(Subcommand, Clone)]
 pub enum TemplateCommand {
     // Add a local file or directory to templates
-    Add {
-        /// The path to a zip-file or directory of zip-files
-        #[arg(required = true)]
-        paths: Vec<String>,
-
-        /// Symlink instead of copying files to templates directory
-        #[arg(long, default_value_t = false)]
-        symlink: bool,
-
-        /// Rename template or file or directory
-        #[arg(short, long)]
-        rename: Option<String>,
-
-        /// Override existing templates
-        #[arg(short, long, default_value_t = false)]
-        force: bool,
-    },
+    Add(TemplateAddArgs),
 
     /// Add a git repository to templates
-    AddRepo {
-        /// The URL to a repository
-        #[clap(index = 1)]
-        url: String,
-
-        /// The path to the template file or directory within the repository
-        #[arg(short, long)]
-        path: Option<String>,
-
-        /// Override existing templates
-        #[arg(short, long, default_value_t = false)]
-        force: bool,
-    },
+    AddRepo(TemplateAddRepoArgs),
 
     /// List templates
     List,
 }
 
+#[derive(Clone, clap::Args)]
+pub struct TemplateAddArgs {
+    /// The path to a zip-file or directory of zip-files
+    #[arg(required = true)]
+    pub paths: Vec<String>,
+
+    /// Symlink instead of copying files to templates directory
+    #[arg(long, default_value_t = false)]
+    pub symlink: bool,
+
+    /// Rename template or file or directory
+    #[arg(short, long)]
+    pub rename: Option<String>,
+
+    /// Override existing templates
+    #[arg(short, long, default_value_t = false)]
+    pub force: bool,
+}
+
+#[derive(Clone, clap::Args)]
+pub struct TemplateAddRepoArgs {
+        /// The URL to a repository
+        #[clap(index = 1)]
+        pub url: String,
+
+        /// The path to the template file or directory within the repository
+        #[arg(short, long)]
+        pub path: Option<String>,
+
+        /// Override existing templates
+        #[arg(short, long, default_value_t = false)]
+        pub force: bool,
+}
+
 #[derive(Subcommand, Clone)]
 pub enum ConfigCommand {
     /// Create a local or global configuration file with the default options
-    Create {
-        /// Override existing templates
-        #[arg(short, long, default_value_t = false)]
-        force: bool,
-    },
+    Create(ConfigCreateArgs),
 
     /// Dump the current configuration to stdout
     Show,
+}
+
+#[derive(Clone, clap::Args)]
+pub struct ConfigCreateArgs {
+        /// Override existing templates
+        #[arg(short, long, default_value_t = false)]
+        pub force: bool,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]

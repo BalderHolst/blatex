@@ -1,10 +1,10 @@
 use std::{fs, path::PathBuf, process::exit};
 
-use crate::opts::Config;
+use crate::opts::{Config, ConfigCreateArgs};
 
 pub const LOCAL_CONFIG_FILE: &str = ".blatex.toml";
 
-pub fn create(cwd: &PathBuf, global: bool, force: bool) {
+pub fn create(cwd: &PathBuf, global: bool, args: &ConfigCreateArgs) {
     let config = Config::default();
 
     let description = if global {
@@ -29,7 +29,7 @@ pub fn create(cwd: &PathBuf, global: bool, force: bool) {
         cwd.join(LOCAL_CONFIG_FILE)
     };
 
-    if !force && dest.exists() {
+    if !args.force && dest.exists() {
         eprintln!(
             "File `{}` already exists. Run with --force to override.",
             dest.display()

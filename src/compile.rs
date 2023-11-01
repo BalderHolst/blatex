@@ -2,9 +2,14 @@ use std::path::PathBuf;
 
 use termion::color::{self, Fg};
 
-use crate::{log, opts::Config, utils};
+use crate::{log, opts::{Config, CompileArgs}, utils};
 
-pub fn compile(cwd: PathBuf, config: Config, main_file: &String) {
+pub fn compile(cwd: PathBuf, config: Config, args: CompileArgs) {
+    let main_file = &args.main_file.unwrap_or(config.main_file.clone());
+    compile_file(cwd, config, main_file);
+}
+
+pub fn compile_file(cwd: PathBuf, config: Config, main_file: &String) {
     let cmd = utils::replace_text(&config.compile_cmd, "<main-file>", main_file.as_str());
     let prefix = format!("cd \"{}\"", cwd.display());
 
