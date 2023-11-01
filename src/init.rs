@@ -1,4 +1,4 @@
-use std::{collections::HashMap, ffi::OsStr, fs, io::Cursor, path::PathBuf};
+use std::{collections::HashMap, fs, io::Cursor, path::PathBuf, process::exit};
 
 use fuzzy_finder::item::Item;
 use termion::color;
@@ -9,6 +9,7 @@ use crate::{
     utils,
 };
 
+#[derive(Debug)]
 enum Template {
     Local(PathBuf),
     Remote(String, RemoteTemplate),
@@ -53,15 +54,55 @@ where
     templates
 }
 
+/// Search for a template with a name
+fn search_templates<'a>(templates_dir: &PathBuf, name: &String, templates: &'a Vec<Template>) -> Option<&'a Template> {
+    let name_path = PathBuf::from(&name);
+    for t in templates {
+        match t {
+            Template::Local(p) => {
+                if p.strip_prefix(templates_dir).unwrap() == name_path.with_extension("zip") {
+                    return Some(t);
+                }
+            }
+            Template::Remote(n, _r) => {
+                if n == name {
+                    return Some(t);
+                }
+            }
+        }
+    }
+    None
+}
+
+fn clone_remote_template(tmp_dir: &PathBuf, name: &String, remote: &RemoteTemplate) -> PathBuf {
+    println!(
+        "\n{}Cloning template '{}' from '{}'.{}",
+        color::Fg(color::Blue),
+        name,
+        &remote.url,
+        color::Fg(color::Reset)
+    );
+    let template_root = utils::clone_repo(tmp_dir, remote.url.as_str());
+    if let Some(path) = &remote.path {
+        template_root.join(path)
+    } else {
+        template_root
+    }
+}
+
 pub fn init(cwd: PathBuf, config: Config, template: Option<String>) {
     let templates_dir = &config.templates_dir;
     let templates = get_templates(templates_dir.as_path(), config.remote_templates);
 
     let template_path = match template {
-        Some(p) => {
-            // TODO: Handle remote templates
-            templates_dir.join(p).with_extension("zip")
-        }
+        Some(t) => match search_templates(&config.templates_dir, &t, &templates) {
+            Some(Template::Local(p)) => p.clone(),
+            Some(Template::Remote(name, remote)) => clone_remote_template(&config.temp_dir, name, remote),
+            None => {
+                eprintln!("Could not find template '{}'.", t);
+                exit(1)
+            },
+        },
         None => {
             // Create fuzzy finder items
             let items: Vec<Item<&Template>> = templates
@@ -75,7 +116,15 @@ pub fn init(cwd: PathBuf, config: Config, template: Option<String>) {
                             .to_string(),
                         t,
                     ),
-                    Template::Remote(name, _r) => Item::new(format!("{}{} (remote){}", color::Fg(color::Magenta), name, color::Fg(color::Reset)), t),
+                    Template::Remote(name, _r) => Item::new(
+                        format!(
+                            "{}{} (remote){}",
+                            color::Fg(color::Magenta),
+                            name,
+                            color::Fg(color::Reset)
+                        ),
+                        t,
+                    ),
                 })
                 .collect();
 
@@ -89,23 +138,11 @@ pub fn init(cwd: PathBuf, config: Config, template: Option<String>) {
             match fuzzy_finder::FuzzyFinder::find(items, nr_of_items as i8).unwrap() {
                 Some(Template::Local(p)) => p.to_path_buf(),
                 Some(Template::Remote(name, remote)) => {
-                    println!(
-                        "\n{}Cloning template '{}' from '{}'.{}",
-                        color::Fg(color::Blue),
-                        name,
-                        &remote.url,
-                        color::Fg(color::Reset)
-                    );
-                    let template_root = utils::clone_repo(&config.temp_dir, remote.url.as_str());
-                    if let Some(path) = &remote.path {
-                        template_root.join(path)
-                    } else {
-                        template_root
-                    }
+                    clone_remote_template(&config.temp_dir, name, remote)
                 }
                 None => {
                     eprintln!("No template chosen.");
-                    std::process::exit(1);
+                    exit(1);
                 }
             }
         }
