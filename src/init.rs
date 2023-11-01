@@ -50,7 +50,7 @@ pub fn init(cwd: PathBuf, config: Config, template: Option<String>) {
 
             // Calculate number of items depending on height of the terminal window
             let nr_of_items = match termion::terminal_size() {
-                Ok((_cols, rows)) => u16::min(8, rows / 5 * 3),
+                Ok((_cols, rows)) => u16::min(items.len() as u16, rows / 5 * 3),
                 Err(_) => 8,
             };
 
