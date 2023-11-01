@@ -64,7 +64,7 @@ mod tests {
     };
     use std::{
         fs,
-        path::{Path, PathBuf},
+        path::PathBuf,
     };
 
     const TEST_DIR: &str = "./__tmp_test_dir__/";
@@ -157,5 +157,28 @@ mod tests {
         run(init_opts);
         run(compile_opts);
         assert!(opts.cwd.join("main.pdf").exists())
+    }
+
+    #[test]
+    #[serial]
+    fn rename_add_templates() {
+        #[allow(unused_variables)]
+
+        // Rename directory
+        let (ctx, opts) = setup!("templates", "add", "-r", "test_templates", "templates");
+        run(opts.clone());
+        assert!(opts.config.templates_dir.join("test_templates").is_dir());
+        assert!(!opts.config.templates_dir.join("templates").is_dir());
+
+        // Rename file
+        let opts = Opts::create_mock(vec!["templates", "add", "-r", "templates_file", "templates/basic.zip"], opts.config, opts.cwd);
+        run(opts.clone());
+        assert!(opts.config.templates_dir.join("templates_file.zip").is_file());
+        assert!(!opts.config.templates_dir.join("basic.zip").is_file());
+
+        // Rename file to file within new directory
+        let opts = Opts::create_mock(vec!["templates", "add", "-r", "dir/within/dir/awesome_template", "templates/basic.zip"], opts.config, opts.cwd);
+        run(opts.clone());
+        assert!(opts.config.templates_dir.join("dir/within/dir/awesome_template.zip").is_file());
     }
 }
