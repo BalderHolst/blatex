@@ -18,11 +18,24 @@ fn clone_remote_template(tmp_dir: &PathBuf, name: &String, remote: &RemoteTempla
         &remote.url,
         color::Fg(color::Reset)
     );
-    let template_root = utils::clone_repo(tmp_dir, remote.url.as_str());
+    let template_root = utils::clone_repo(tmp_dir, remote.url.as_str(), remote.branch.as_ref());
     if let Some(path) = &remote.path {
         template_root.join(path)
     } else {
         template_root
+    }
+}
+
+fn copy_directory(src: &PathBuf, dest: &PathBuf) {
+    fs::create_dir(&dest).unwrap();
+    for file in fs::read_dir(src).unwrap() {
+        let file = file.unwrap().path();
+        let file_name = file.file_name().unwrap();
+        if file.is_file() {
+            fs::copy(&file, dest.join(file_name)).unwrap();
+        } else if file.is_dir() {
+            copy_directory(&src.join(file_name), &dest.join(file_name))
+        }
     }
 }
 
@@ -79,7 +92,12 @@ pub fn init(cwd: PathBuf, config: Config, template: Option<String>) {
         for file in fs::read_dir(template_path).unwrap() {
             let file = file.unwrap().path();
             let file_name = file.file_name().unwrap().to_str().unwrap();
-            fs::copy(&file, cwd.join(file_name)).unwrap();
+            let dest = cwd.join(file_name);
+            if file.is_dir() {
+                copy_directory(&file, &dest)
+            } else {
+                fs::copy(&file, dest).unwrap();
+            }
         }
     }
 

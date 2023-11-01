@@ -225,12 +225,12 @@ impl Config {
                                 Some(toml::Value::String(p)) => Some(PathBuf::from(p)),
                                 _ => None,
                             };
-                            let zip = match fields.get("zip") {
-                                Some(toml::Value::Boolean(z)) => *z,
-                                _ => false,
+                            let branch = match fields.get("branch") {
+                                Some(toml::Value::String(b)) => Some(b.clone()),
+                                _ => None,
                             };
 
-                            RemoteTemplate::new(url, path, zip)
+                            RemoteTemplate::new(url, path, branch)
                         }
                         _ => {
                             eprintln!("Error in remote template '{}'. Must be string or table of options.", name);
@@ -273,16 +273,16 @@ impl Config {
 pub struct RemoteTemplate {
     pub url: String,
     pub path: Option<PathBuf>,
-    pub zip: bool,
+    pub branch: Option<String>,
 }
 
 impl RemoteTemplate {
-    pub fn new(url: String, path: Option<PathBuf>, zip: bool) -> Self {
-        Self { url, path, zip }
+    pub fn new(url: String, path: Option<PathBuf>, branch: Option<String>) -> Self {
+        Self { url, path, branch }
     }
 
     pub fn from_url(url: String) -> Self {
-        Self::new(url, None, false)
+        Self::new(url, None, None)
     }
 }
 

@@ -256,7 +256,8 @@ fn _list_templates_recursive(dir: PathBuf, level: usize) {
 }
 
 pub fn add_repo(cwd: PathBuf, config: Config, url: String, path: Option<String>, force: bool) {
-    let cloned_repo_root = utils::clone_repo(&config.temp_dir, url.as_str());
+    // TODO: support branches
+    let cloned_repo_root = utils::clone_repo(&config.temp_dir, url.as_str(), None);
 
     // Handle that the user may provide a path within repo as the template
     let template_path = match path {

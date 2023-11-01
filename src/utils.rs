@@ -4,15 +4,13 @@ use std::{
     process::{exit, Command},
 };
 
-use crate::opts::Config;
-
 pub fn replace_text(s: &String, pattern: &str, value: &str) -> String {
     let (first, second) = s.split_once(pattern).expect("pattern not found.");
     first.to_string() + value + second
 }
 
 /// Clones a repository and returns path to the root of the cloned directory.
-pub fn clone_repo(tmp_dir: &PathBuf, url: &str) -> PathBuf {
+pub fn clone_repo(tmp_dir: &PathBuf, url: &str, branch: Option<&String>) -> PathBuf {
     // Path to a temporary directory for cloning repos into.
     let tmp_dir = tmp_dir.join("cloned_repo");
 
@@ -23,13 +21,26 @@ pub fn clone_repo(tmp_dir: &PathBuf, url: &str) -> PathBuf {
     fs::create_dir(&tmp_dir).unwrap();
 
     // Clone the repo inside the temporary directory
-    let status = Command::new("git")
-        .arg("-C")
-        .arg(&tmp_dir)
-        .arg("clone")
-        .arg(&url)
-        .status()
-        .unwrap();
+    let status = {
+        match branch {
+            Some(b) => Command::new("git")
+                .arg("-C")
+                .arg(&tmp_dir)
+                .arg("clone")
+                .arg("--branch")
+                .arg(b)
+                .arg(&url)
+                .status()
+                .unwrap(),
+            None => Command::new("git")
+                .arg("-C")
+                .arg(&tmp_dir)
+                .arg("clone")
+                .arg(&url)
+                .status()
+                .unwrap(),
+        }
+    };
 
     // Handle git failing
     match status.code() {
