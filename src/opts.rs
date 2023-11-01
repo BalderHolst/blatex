@@ -75,6 +75,10 @@ pub enum TemplateCommand {
         #[arg(long, default_value_t = false)]
         symlink: bool,
 
+        /// Rename template or file or directory
+        #[arg(short, long)]
+        rename: Option<String>,
+
         /// Override existing templates
         #[arg(short, long, default_value_t = false)]
         force: bool,

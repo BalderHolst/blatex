@@ -26,15 +26,25 @@ fn copy_dir_all(src: impl AsRef<Path>, dst: impl AsRef<Path>) -> io::Result<()> 
     Ok(())
 }
 
-// TODO: Glob support
-// TODO: Rename support
-pub fn add_paths(cwd: PathBuf, config: Config, paths: Vec<String>, symlink: bool, force: bool) {
+pub fn add_paths(
+    cwd: PathBuf,
+    config: Config,
+    paths: Vec<String>,
+    symlink: bool,
+    force: bool,
+    rename: Option<String>,
+) {
+    if rename.is_some() && paths.len() != 1 {
+        eprintln!("Cannot rename when adding more than one file or directory.");
+        exit(1)
+    }
+
     for p in paths {
-        add_path(&cwd, &config, PathBuf::from(p), symlink, force);
+        add_path(&cwd, &config, PathBuf::from(p), symlink, force, rename.as_ref());
     }
 }
 
-fn add_path(cwd: &PathBuf, config: &Config, path: PathBuf, symlink: bool, force: bool) {
+fn add_path(cwd: &PathBuf, config: &Config, path: PathBuf, symlink: bool, force: bool, rename: Option<&String>) {
     let path = PathBuf::from(path);
     let path_filename = path.file_name().unwrap();
 
@@ -44,7 +54,16 @@ fn add_path(cwd: &PathBuf, config: &Config, path: PathBuf, symlink: bool, force:
     }
 
     let templates_dir = &config.templates_dir;
-    let dest = templates_dir.join(path_filename);
+    let dest = templates_dir.join(match rename {
+        Some(new_name) => {
+            let mut p = PathBuf::from(new_name);
+            if path.is_file() {
+                p.set_extension("zip");
+            }
+            p
+        },
+        None => PathBuf::from(path_filename),
+    });
 
     if dest.exists() {
         if !force {
@@ -63,6 +82,8 @@ fn add_path(cwd: &PathBuf, config: &Config, path: PathBuf, symlink: bool, force:
         }
     }
 
+    fs::create_dir_all(templates_dir.as_path()).unwrap();
+
     // This works for both paths and directories
     if symlink {
         os::unix::fs::symlink(cwd.join(path), dest).unwrap();
@@ -74,7 +95,10 @@ fn add_path(cwd: &PathBuf, config: &Config, path: PathBuf, symlink: bool, force:
             eprintln!("Templates should be zip files.");
             exit(1);
         }
-        fs::create_dir_all(templates_dir.as_path()).unwrap();
+
+        // Make sure that parent of added file exists
+        let parrent = dest.parent().unwrap();
+        fs::create_dir_all(parrent).unwrap();
 
         if symlink {
             os::unix::fs::symlink(cwd.join(path), dest).unwrap();
@@ -82,7 +106,6 @@ fn add_path(cwd: &PathBuf, config: &Config, path: PathBuf, symlink: bool, force:
             fs::copy(path.as_path(), dest).unwrap();
         }
     } else if path.is_dir() {
-        let dest = templates_dir.join(path.file_name().unwrap());
         if symlink {
             os::unix::fs::symlink(cwd.join(path), dest).unwrap();
         } else {
@@ -197,5 +220,5 @@ pub fn add_repo(cwd: PathBuf, config: Config, url: String, path: Option<String>,
     zip_extensions::write::zip_create_from_directory(&archive_path, &template_path).unwrap();
 
     // Add the template as a normal local template
-    add_path(&cwd, &config, archive_path, false, force)
+    add_path(&cwd, &config, archive_path, false, force, None)
 }

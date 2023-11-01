@@ -37,7 +37,8 @@ fn run(opts: Opts) {
                 paths,
                 symlink,
                 force,
-            } => templates::add_paths(opts.cwd, opts.config, paths, symlink, force),
+                rename,
+            } => templates::add_paths(opts.cwd, opts.config, paths, symlink, force, rename),
             opts::TemplateCommand::AddRepo { url, path, force } => {
                 templates::add_repo(opts.cwd, opts.config, url, path, force)
             }
