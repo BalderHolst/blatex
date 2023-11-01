@@ -1,4 +1,8 @@
-use std::{path::PathBuf, fs, process::{Command, exit}};
+use std::{
+    fs,
+    path::PathBuf,
+    process::{exit, Command},
+};
 
 use crate::opts::Config;
 
@@ -9,7 +13,6 @@ pub fn replace_text(s: &String, pattern: &str, value: &str) -> String {
 
 /// Clones a repository and returns path to the root of the cloned directory.
 pub fn clone_repo(tmp_dir: &PathBuf, url: &str) -> PathBuf {
-
     // Path to a temporary directory for cloning repos into.
     let tmp_dir = tmp_dir.join("cloned_repo");
 

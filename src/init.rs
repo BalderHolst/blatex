@@ -6,7 +6,8 @@ use termion::color;
 use crate::{
     config::{self, LOCAL_CONFIG_FILE},
     opts::{Config, RemoteTemplate},
-    utils, templates::{self, Template},
+    templates::{self, Template},
+    utils,
 };
 
 fn clone_remote_template(tmp_dir: &PathBuf, name: &String, remote: &RemoteTemplate) -> PathBuf {
@@ -42,7 +43,10 @@ pub fn init(cwd: PathBuf, config: Config, template: Option<String>) {
         },
         None => {
             // Create fuzzy finder items
-            let items: Vec<Item<&Template>> = templates.iter().map(|t| Item::new(t.to_string(), t)).collect();
+            let items: Vec<Item<&Template>> = templates
+                .iter()
+                .map(|t| Item::new(t.to_string(), t))
+                .collect();
 
             // Calculate number of items depending on height of the terminal window
             let nr_of_items = match termion::terminal_size() {

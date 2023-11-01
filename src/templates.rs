@@ -1,8 +1,9 @@
 use std::{
+    collections::HashMap,
     ffi::OsStr,
     fs, io, os,
     path::{Path, PathBuf},
-    process::{exit, Command}, collections::HashMap,
+    process::exit,
 };
 
 use termion::{
@@ -10,7 +11,10 @@ use termion::{
     style,
 };
 
-use crate::{opts::{Config, RemoteTemplate}, utils};
+use crate::{
+    opts::{Config, RemoteTemplate},
+    utils,
+};
 
 #[derive(Debug)]
 pub enum Template {
@@ -123,11 +127,25 @@ pub fn add_paths(
     }
 
     for p in paths {
-        add_path(&cwd, &config, PathBuf::from(p), symlink, force, rename.as_ref());
+        add_path(
+            &cwd,
+            &config,
+            PathBuf::from(p),
+            symlink,
+            force,
+            rename.as_ref(),
+        );
     }
 }
 
-fn add_path(cwd: &PathBuf, config: &Config, path: PathBuf, symlink: bool, force: bool, rename: Option<&String>) {
+fn add_path(
+    cwd: &PathBuf,
+    config: &Config,
+    path: PathBuf,
+    symlink: bool,
+    force: bool,
+    rename: Option<&String>,
+) {
     let path = PathBuf::from(path);
     let path_filename = path.file_name().unwrap();
 
@@ -144,7 +162,7 @@ fn add_path(cwd: &PathBuf, config: &Config, path: PathBuf, symlink: bool, force:
                 p.set_extension("zip");
             }
             p
-        },
+        }
         None => PathBuf::from(path_filename),
     });
 
@@ -227,7 +245,7 @@ fn _list_templates_recursive(dir: PathBuf, level: usize) {
                         Fg(color::Reset),
                         style::Reset,
                     );
-                    list_templates_recursive(path, level + 1)
+                    _list_templates_recursive(path, level + 1)
                 }
             }
         }
@@ -238,7 +256,6 @@ fn _list_templates_recursive(dir: PathBuf, level: usize) {
 }
 
 pub fn add_repo(cwd: PathBuf, config: Config, url: String, path: Option<String>, force: bool) {
-
     let cloned_repo_root = utils::clone_repo(&config.temp_dir, url.as_str());
 
     // Handle that the user may provide a path within repo as the template
@@ -258,7 +275,8 @@ pub fn add_repo(cwd: PathBuf, config: Config, url: String, path: Option<String>,
     };
 
     // The zip archive will have the same name as the repo, but with the .zip extension
-    let archive_path = config.temp_dir
+    let archive_path = config
+        .temp_dir
         .join(template_path.file_name().unwrap())
         .with_extension("zip");
 

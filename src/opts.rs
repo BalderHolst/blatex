@@ -215,11 +215,11 @@ impl Config {
                                 Some(_) => {
                                     eprintln!("ERROR: Repository url must be string.");
                                     exit(1)
-                                },
+                                }
                                 None => {
                                     eprintln!("ERROR: Repository for '{}' is not defined.", name);
                                     exit(1)
-                                },
+                                }
                             };
                             let path = match fields.get("path") {
                                 Some(toml::Value::String(p)) => Some(PathBuf::from(p)),
@@ -231,14 +231,15 @@ impl Config {
                             };
 
                             RemoteTemplate::new(url, path, zip)
-
-                        },
+                        }
                         _ => {
                             eprintln!("Error in remote template '{}'. Must be string or table of options.", name);
                             exit(1)
                         }
                     };
-                    config.remote_templates.insert(name.clone(), remote_template);
+                    config
+                        .remote_templates
+                        .insert(name.clone(), remote_template);
                 }
             }
 
@@ -272,7 +273,7 @@ impl Config {
 pub struct RemoteTemplate {
     pub url: String,
     pub path: Option<PathBuf>,
-    pub zip: bool
+    pub zip: bool,
 }
 
 impl RemoteTemplate {
