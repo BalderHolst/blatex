@@ -6,6 +6,8 @@ use serde::{Deserialize, Serialize};
 
 use crate::config::LOCAL_CONFIG_FILE;
 
+const REMOTE_TEMPLATES_OPTION: &str = "templates";
+
 #[derive(Parser, Clone)]
 pub struct Args {
     #[command(subcommand)]
@@ -140,6 +142,9 @@ pub struct Config {
 
     /// Directory used for temporary files
     pub temp_dir: PathBuf,
+
+    /// Remote templates and their options
+    pub remote_templates: HashMap<String, RemoteTemplate>,
 }
 
 impl Default for Config {
@@ -160,6 +165,7 @@ impl Default for Config {
                 "latexmk -pdf -bibtex-cond -shell-escape -interaction=nonstopmode <main-file>"
                     .to_string(),
             clean_cmd: "latexmk -c <main-file>".to_string(),
+            remote_templates: HashMap::new(),
         }
     }
 }
@@ -199,6 +205,43 @@ impl Config {
             let global_config: HashMap<String, toml::Value> =
                 toml::from_str(global_toml.as_str()).unwrap();
 
+            if let Some(toml::Value::Table(table)) = global_config.get(REMOTE_TEMPLATES_OPTION) {
+                for (name, value) in table.iter() {
+                    let remote_template = match value {
+                        toml::Value::String(url) => RemoteTemplate::from_url(url.clone()),
+                        toml::Value::Table(fields) => {
+                            let url = match fields.get("repo") {
+                                Some(toml::Value::String(r)) => r.clone(),
+                                Some(_) => {
+                                    eprintln!("ERROR: Repository url must be string.");
+                                    exit(1)
+                                },
+                                None => {
+                                    eprintln!("ERROR: Repository for '{}' is not defined.", name);
+                                    exit(1)
+                                },
+                            };
+                            let path = match fields.get("path") {
+                                Some(toml::Value::String(p)) => Some(PathBuf::from(p)),
+                                _ => None,
+                            };
+                            let zip = match fields.get("zip") {
+                                Some(toml::Value::Boolean(z)) => *z,
+                                _ => false,
+                            };
+
+                            RemoteTemplate::new(url, path, zip)
+
+                        },
+                        _ => {
+                            eprintln!("Error in remote template '{}'. Must be string or table of options.", name);
+                            exit(1)
+                        }
+                    };
+                    config.remote_templates.insert(name.clone(), remote_template);
+                }
+            }
+
             Self::override_some_fields(&mut config, global_config);
         }
 
@@ -222,6 +265,23 @@ impl Config {
             );
         }
         config
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct RemoteTemplate {
+    pub url: String,
+    pub path: Option<PathBuf>,
+    pub zip: bool
+}
+
+impl RemoteTemplate {
+    pub fn new(url: String, path: Option<PathBuf>, zip: bool) -> Self {
+        Self { url, path, zip }
+    }
+
+    pub fn from_url(url: String) -> Self {
+        Self::new(url, None, false)
     }
 }
 
