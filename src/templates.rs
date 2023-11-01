@@ -10,7 +10,7 @@ use termion::{
     style,
 };
 
-use crate::opts::Config;
+use crate::{opts::Config, utils};
 
 fn copy_dir_all(src: impl AsRef<Path>, dst: impl AsRef<Path>) -> io::Result<()> {
     fs::create_dir_all(&dst)?;
@@ -153,47 +153,8 @@ fn list_templates_recursive(dir: PathBuf, level: usize) {
 }
 
 pub fn add_repo(cwd: PathBuf, config: Config, url: String, path: Option<String>, force: bool) {
-    // Path to a temporary directory for cloning repos into.
-    let tmp_dir = config.templates_dir.join("cloned_repo");
 
-    // Clear the directory: Delete it if it exists and recreate it
-    if tmp_dir.exists() {
-        fs::remove_dir_all(&tmp_dir).unwrap();
-    }
-    fs::create_dir(&tmp_dir).unwrap();
-
-    // Clone the repo inside the temporary directory
-    let status = Command::new("git")
-        .arg("-C")
-        .arg(&tmp_dir)
-        .arg("clone")
-        .arg(&url)
-        .status()
-        .unwrap();
-
-    // Handle git failing
-    match status.code() {
-        Some(c) => {
-            if c != 0 {
-                eprintln!("Git failed to clone repo. Exit code was {}.", c);
-                exit(1);
-            }
-        }
-        None => {
-            eprintln!("Git process stopped unexpectedly");
-            exit(1);
-        }
-    }
-
-    // The repo root is the only entry in the temporary directory
-    let cloned_repo_root = fs::read_dir(&tmp_dir)
-        .unwrap()
-        .next()
-        .unwrap()
-        .unwrap()
-        .path();
-
-    debug_assert!(cloned_repo_root.is_dir());
+    let cloned_repo_root = utils::clone_repo(&config.temp_dir, url.as_str());
 
     // Handle that the user may provide a path within repo as the template
     let template_path = match path {
@@ -212,7 +173,7 @@ pub fn add_repo(cwd: PathBuf, config: Config, url: String, path: Option<String>,
     };
 
     // The zip archive will have the same name as the repo, but with the .zip extension
-    let archive_path = tmp_dir
+    let archive_path = config.temp_dir
         .join(template_path.file_name().unwrap())
         .with_extension("zip");
 
