@@ -1,4 +1,4 @@
-use std::{collections::HashMap, fs, io::Cursor, path::PathBuf, process::exit};
+use std::{fs, io::Cursor, path::PathBuf, process::exit};
 
 use fuzzy_finder::item::Item;
 use termion::color;
@@ -6,73 +6,8 @@ use termion::color;
 use crate::{
     config::{self, LOCAL_CONFIG_FILE},
     opts::{Config, RemoteTemplate},
-    utils,
+    utils, templates::{self, Template},
 };
-
-#[derive(Debug)]
-enum Template {
-    Local(PathBuf),
-    Remote(String, RemoteTemplate),
-}
-
-fn get_templates<P>(
-    templates_dir: P,
-    remote_templates: HashMap<String, RemoteTemplate>,
-) -> Vec<Template>
-where
-    P: AsRef<std::path::Path>,
-{
-    // Get the local templates
-    let mut templates: Vec<Template> = get_local_templates(templates_dir)
-        .iter()
-        .map(|t| Template::Local(t.clone()))
-        .collect();
-
-    // Insert the remote templates
-    templates.extend(
-        remote_templates
-            .iter()
-            .map(|(n, t)| Template::Remote(n.clone(), t.clone())),
-    );
-
-    return templates;
-}
-
-fn get_local_templates<P>(templates_dir: P) -> Vec<PathBuf>
-where
-    P: AsRef<std::path::Path>,
-{
-    let mut templates = Vec::new();
-    for file in fs::read_dir(&templates_dir).unwrap() {
-        let path = file.unwrap().path();
-        if path.is_file() {
-            templates.push(templates_dir.as_ref().join(path.file_name().unwrap()))
-        } else if path.is_dir() {
-            templates.extend(get_local_templates(path))
-        }
-    }
-    templates
-}
-
-/// Search for a template with a name
-fn search_templates<'a>(templates_dir: &PathBuf, name: &String, templates: &'a Vec<Template>) -> Option<&'a Template> {
-    let name_path = PathBuf::from(&name);
-    for t in templates {
-        match t {
-            Template::Local(p) => {
-                if p.strip_prefix(templates_dir).unwrap() == name_path.with_extension("zip") {
-                    return Some(t);
-                }
-            }
-            Template::Remote(n, _r) => {
-                if n == name {
-                    return Some(t);
-                }
-            }
-        }
-    }
-    None
-}
 
 fn clone_remote_template(tmp_dir: &PathBuf, name: &String, remote: &RemoteTemplate) -> PathBuf {
     println!(
@@ -92,41 +27,22 @@ fn clone_remote_template(tmp_dir: &PathBuf, name: &String, remote: &RemoteTempla
 
 pub fn init(cwd: PathBuf, config: Config, template: Option<String>) {
     let templates_dir = &config.templates_dir;
-    let templates = get_templates(templates_dir.as_path(), config.remote_templates);
+    let templates = templates::get_templates(templates_dir.as_path(), &config.remote_templates);
 
     let template_path = match template {
-        Some(t) => match search_templates(&config.templates_dir, &t, &templates) {
+        Some(t) => match templates::search_templates(&config.templates_dir, &t, &templates) {
             Some(Template::Local(p)) => p.clone(),
-            Some(Template::Remote(name, remote)) => clone_remote_template(&config.temp_dir, name, remote),
+            Some(Template::Remote(name, remote)) => {
+                clone_remote_template(&config.temp_dir, name, remote)
+            }
             None => {
                 eprintln!("Could not find template '{}'.", t);
                 exit(1)
-            },
+            }
         },
         None => {
             // Create fuzzy finder items
-            let items: Vec<Item<&Template>> = templates
-                .iter()
-                .map(|t| match t {
-                    Template::Local(p) => Item::new(
-                        p.strip_prefix(templates_dir.as_path())
-                            .unwrap()
-                            .to_str()
-                            .unwrap()
-                            .to_string(),
-                        t,
-                    ),
-                    Template::Remote(name, _r) => Item::new(
-                        format!(
-                            "{}{} (remote){}",
-                            color::Fg(color::Magenta),
-                            name,
-                            color::Fg(color::Reset)
-                        ),
-                        t,
-                    ),
-                })
-                .collect();
+            let items: Vec<Item<&Template>> = templates.iter().map(|t| Item::new(t.to_string(), t)).collect();
 
             // Calculate number of items depending on height of the terminal window
             let nr_of_items = match termion::terminal_size() {

@@ -2,7 +2,7 @@ use std::{
     ffi::OsStr,
     fs, io, os,
     path::{Path, PathBuf},
-    process::{exit, Command},
+    process::{exit, Command}, collections::HashMap,
 };
 
 use termion::{
@@ -10,7 +10,90 @@ use termion::{
     style,
 };
 
-use crate::{opts::Config, utils};
+use crate::{opts::{Config, RemoteTemplate}, utils};
+
+#[derive(Debug)]
+pub enum Template {
+    Local(PathBuf),
+    Remote(String, RemoteTemplate),
+}
+
+impl ToString for Template {
+    fn to_string(&self) -> String {
+        match self {
+            Template::Local(p) => p.to_str().unwrap().to_string(),
+            Template::Remote(name, _r) => format!(
+                "{}{} (remote){}",
+                color::Fg(color::Magenta),
+                name,
+                color::Fg(color::Reset)
+            ),
+        }
+    }
+}
+
+pub fn get_templates<P>(
+    templates_dir: P,
+    remote_templates: &HashMap<String, RemoteTemplate>,
+) -> Vec<Template>
+where
+    P: AsRef<std::path::Path>,
+{
+    // Get the local templates
+    let mut templates: Vec<Template> = get_local_templates(&templates_dir)
+        .iter()
+        .map(|t| Template::Local(t.strip_prefix(&templates_dir).unwrap().to_path_buf()))
+        .collect();
+
+    // Insert the remote templates
+    templates.extend(
+        remote_templates
+            .iter()
+            .map(|(n, t)| Template::Remote(n.clone(), t.clone())),
+    );
+
+    return templates;
+}
+
+fn get_local_templates<P>(templates_dir: P) -> Vec<PathBuf>
+where
+    P: AsRef<std::path::Path>,
+{
+    let mut templates = Vec::new();
+    for file in fs::read_dir(&templates_dir).unwrap() {
+        let path = file.unwrap().path();
+        if path.is_file() {
+            templates.push(templates_dir.as_ref().join(path.file_name().unwrap()));
+        } else if path.is_dir() {
+            templates.extend(get_local_templates(path))
+        }
+    }
+    templates
+}
+
+/// Search for a template with a name
+pub fn search_templates<'a>(
+    templates_dir: &PathBuf,
+    name: &String,
+    templates: &'a Vec<Template>,
+) -> Option<&'a Template> {
+    let name_path = PathBuf::from(&name);
+    for t in templates {
+        match t {
+            Template::Local(p) => {
+                if p.strip_prefix(templates_dir).unwrap() == name_path.with_extension("zip") {
+                    return Some(t);
+                }
+            }
+            Template::Remote(n, _r) => {
+                if n == name {
+                    return Some(t);
+                }
+            }
+        }
+    }
+    None
+}
 
 fn copy_dir_all(src: impl AsRef<Path>, dst: impl AsRef<Path>) -> io::Result<()> {
     fs::create_dir_all(&dst)?;
@@ -118,10 +201,12 @@ fn add_path(cwd: &PathBuf, config: &Config, path: PathBuf, symlink: bool, force:
 }
 
 pub fn list_templates(config: Config) {
-    list_templates_recursive(config.templates_dir, 0)
+    for t in get_templates(&config.templates_dir, &config.remote_templates) {
+        println!("{}", t.to_string())
+    }
 }
 
-fn list_templates_recursive(dir: PathBuf, level: usize) {
+fn _list_templates_recursive(dir: PathBuf, level: usize) {
     match fs::read_dir(dir) {
         Ok(read_dir) => {
             for file in read_dir {
