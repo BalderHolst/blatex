@@ -48,8 +48,6 @@ pub fn init(cwd: PathBuf, mut config: Config, args: InitArgs) {
             Some(Template::Local(p)) => config.templates_dir.join(p),
             Some(Template::Remote(name, remote)) => {
                 Config::override_some_fields(&mut config, &remote.map);
-                dbg!(&remote.map);
-                dbg!(&config);
                 clone_remote_template(&config.temp_dir, name, remote)
             }
             None => {
@@ -108,7 +106,7 @@ pub fn init(cwd: PathBuf, mut config: Config, args: InitArgs) {
     // Create configuration file if it does not exist
     let config_file_path = PathBuf::from(LOCAL_CONFIG_FILE);
     if !config_file_path.exists() {
-        config::create(&cwd, false, &ConfigCreateArgs { force: false });
+        config::create(&cwd, false, &ConfigCreateArgs { force: false }, &config);
     }
 
     // Compile document with the new configuration

@@ -31,7 +31,7 @@ fn run(opts: Opts) {
         },
         Command::Config(args) => match &args.config_command {
             opts::ConfigCommand::Create(create_args) => {
-                config::create(&opts.cwd, args.global, create_args)
+                config::create(&opts.cwd, args.global, create_args, &opts.config)
             }
             opts::ConfigCommand::Show => config::show(opts.config, args.global),
         },
