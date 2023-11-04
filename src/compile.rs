@@ -2,7 +2,11 @@ use std::path::PathBuf;
 
 use termion::color::{self, Fg};
 
-use crate::{log, opts::{Config, CompileArgs}, utils};
+use crate::{
+    log,
+    opts::{CompileArgs, Config},
+    utils,
+};
 
 pub fn compile(cwd: PathBuf, config: Config, args: CompileArgs) {
     let main_file = &args.main_file.unwrap_or(config.main_file.clone());

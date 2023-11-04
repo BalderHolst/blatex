@@ -116,17 +116,17 @@ pub struct TemplateAddArgs {
 
 #[derive(Clone, clap::Args)]
 pub struct TemplateAddRepoArgs {
-        /// The URL to a repository
-        #[clap(index = 1)]
-        pub url: String,
+    /// The URL to a repository
+    #[clap(index = 1)]
+    pub url: String,
 
-        /// The path to the template file or directory within the repository
-        #[arg(short, long)]
-        pub path: Option<String>,
+    /// The path to the template file or directory within the repository
+    #[arg(short, long)]
+    pub path: Option<String>,
 
-        /// Override existing templates
-        #[arg(short, long, default_value_t = false)]
-        pub force: bool,
+    /// Override existing templates
+    #[arg(short, long, default_value_t = false)]
+    pub force: bool,
 }
 
 #[derive(Subcommand, Clone)]
@@ -140,9 +140,9 @@ pub enum ConfigCommand {
 
 #[derive(Clone, clap::Args)]
 pub struct ConfigCreateArgs {
-        /// Override existing templates
-        #[arg(short, long, default_value_t = false)]
-        pub force: bool,
+    /// Override existing templates
+    #[arg(short, long, default_value_t = false)]
+    pub force: bool,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]

@@ -2,7 +2,10 @@ use std::path::PathBuf;
 
 use termion::color::{self, Fg};
 
-use crate::{opts::{Config, CleanArgs}, utils};
+use crate::{
+    opts::{CleanArgs, Config},
+    utils,
+};
 
 pub fn clean(cwd: PathBuf, config: Config, args: CleanArgs) {
     let main_file = &args.main_file.unwrap_or(config.main_file.clone());

@@ -5,7 +5,7 @@ use termion::color;
 
 use crate::{
     config::{self, LOCAL_CONFIG_FILE},
-    opts::{Config, RemoteTemplate, InitArgs, ConfigCreateArgs},
+    opts::{Config, ConfigCreateArgs, InitArgs, RemoteTemplate},
     templates::{self, Template},
     utils,
 };
@@ -61,7 +61,8 @@ pub fn init(cwd: PathBuf, config: Config, args: InitArgs) {
                 .map(|t| Item::new(t.to_string(), t))
                 .collect();
 
-            // Calculate number of items depending on height of the terminal window
+            // Calculate number of items depending on height of the terminal window and number of
+            // templates.
             let nr_of_items = match termion::terminal_size() {
                 Ok((_cols, rows)) => u16::min(items.len() as u16, rows / 5 * 3),
                 Err(_) => 8,
@@ -104,9 +105,7 @@ pub fn init(cwd: PathBuf, config: Config, args: InitArgs) {
     // Create configuration file if it does not exist
     let config_file_path = PathBuf::from(LOCAL_CONFIG_FILE);
     if !config_file_path.exists() {
-        config::create(&cwd, false, &ConfigCreateArgs {
-            force: false,
-        });
+        config::create(&cwd, false, &ConfigCreateArgs { force: false });
     }
 
     // Create new configuration

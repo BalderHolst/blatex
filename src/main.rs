@@ -19,7 +19,9 @@ fn run(opts: Opts) {
         Command::Init(args) => init::init(opts.cwd, opts.config, args),
         Command::Compile(args) => compile::compile(opts.cwd, opts.config, args),
         Command::Clean(args) => clean::clean(opts.cwd, opts.config, args),
-        Command::Log(args) => log::print_log(opts.cwd, &args.log_file.unwrap_or(opts.config.main_file)),
+        Command::Log(args) => {
+            log::print_log(opts.cwd, &args.log_file.unwrap_or(opts.config.main_file))
+        }
         Command::Templates(args) => match args.template_command {
             opts::TemplateCommand::Add(args) => templates::add_paths(opts.cwd, opts.config, args),
             opts::TemplateCommand::AddRepo(args) => {
@@ -28,7 +30,9 @@ fn run(opts: Opts) {
             opts::TemplateCommand::List => templates::list_templates(opts.config),
         },
         Command::Config(args) => match &args.config_command {
-            opts::ConfigCommand::Create(create_args) => config::create(&opts.cwd, args.global, create_args),
+            opts::ConfigCommand::Create(create_args) => {
+                config::create(&opts.cwd, args.global, create_args)
+            }
             opts::ConfigCommand::Show => config::show(opts.config, args.global),
         },
     }
