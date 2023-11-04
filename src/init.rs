@@ -45,7 +45,7 @@ pub fn init(cwd: PathBuf, config: Config, args: InitArgs) {
 
     let template_path = match args.template {
         Some(t) => match templates::search_templates(&t, &templates) {
-            Some(Template::Local(p)) => p.clone(),
+            Some(Template::Local(p)) => config.templates_dir.join(p),
             Some(Template::Remote(name, remote)) => {
                 clone_remote_template(&config.temp_dir, name, remote)
             }
