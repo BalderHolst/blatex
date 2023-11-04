@@ -3,6 +3,7 @@ use std::{collections::HashMap, fs, path::PathBuf, process::exit};
 use clap::{Parser, Subcommand};
 use directories::ProjectDirs;
 use serde::{Deserialize, Serialize};
+use toml::map::Map;
 
 use crate::config::LOCAL_CONFIG_FILE;
 
@@ -198,7 +199,7 @@ impl Default for Config {
 }
 
 impl Config {
-    fn override_some_fields(config: &mut Config, map: HashMap<String, toml::Value>) {
+    pub fn override_some_fields(config: &mut Config, map: &Map<String, toml::Value>) {
         Self::override_pathbuf_if_some_string(&mut config.data_dir, map.get("data_dir"));
         Self::override_pathbuf_if_some_string(&mut config.templates_dir, map.get("templates_dir"));
         Self::override_pathbuf_if_some_string(&mut config.config_file, map.get("config_file"));
@@ -229,7 +230,7 @@ impl Config {
 
         if config.config_file.is_file() {
             let global_toml = fs::read_to_string(&config.config_file).unwrap();
-            let global_config: HashMap<String, toml::Value> =
+            let global_config: Map<String, toml::Value> =
                 toml::from_str(global_toml.as_str()).unwrap();
 
             if let Some(toml::Value::Table(table)) = global_config.get(REMOTE_TEMPLATES_OPTION) {
@@ -257,7 +258,7 @@ impl Config {
                                 _ => None,
                             };
 
-                            RemoteTemplate::new(url, path, branch)
+                            RemoteTemplate::new(url, path, branch, fields.clone())
                         }
                         _ => {
                             eprintln!("Error in remote template '{}'. Must be string or table of options.", name);
@@ -270,7 +271,7 @@ impl Config {
                 }
             }
 
-            Self::override_some_fields(&mut config, global_config);
+            Self::override_some_fields(&mut config, &global_config);
         }
 
         config
@@ -284,8 +285,8 @@ impl Config {
         let local_config_file = local_config_file.unwrap_or(cwd.join(LOCAL_CONFIG_FILE));
 
         if let Ok(toml) = fs::read_to_string(&local_config_file) {
-            let local_config: HashMap<String, toml::Value> = toml::from_str(toml.as_str()).unwrap();
-            Self::override_some_fields(&mut config, local_config);
+            let local_config: Map<String, toml::Value> = toml::from_str(toml.as_str()).unwrap();
+            Self::override_some_fields(&mut config, &local_config);
         } else if !default_config {
             eprintln!(
                 "Could not read local config file `{}`. Skipping.",
@@ -301,15 +302,16 @@ pub struct RemoteTemplate {
     pub url: String,
     pub path: Option<PathBuf>,
     pub branch: Option<String>,
+    pub map: toml::map::Map<String, toml::Value>,
 }
 
 impl RemoteTemplate {
-    pub fn new(url: String, path: Option<PathBuf>, branch: Option<String>) -> Self {
-        Self { url, path, branch }
+    pub fn new(url: String, path: Option<PathBuf>, branch: Option<String>, map: Map<String, toml::Value>) -> Self {
+        Self { url, path, branch, map }
     }
 
     pub fn from_url(url: String) -> Self {
-        Self::new(url, None, None)
+        Self::new(url, None, None, Map::new())
     }
 }
 

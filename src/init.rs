@@ -39,7 +39,7 @@ fn copy_directory(src: &PathBuf, dest: &PathBuf) {
     }
 }
 
-pub fn init(cwd: PathBuf, config: Config, args: InitArgs) {
+pub fn init(cwd: PathBuf, mut config: Config, args: InitArgs) {
     let templates_dir = &config.templates_dir;
     let templates = templates::get_templates(templates_dir.as_path(), &config.remote_templates);
 
@@ -47,6 +47,9 @@ pub fn init(cwd: PathBuf, config: Config, args: InitArgs) {
         Some(t) => match templates::search_templates(&t, &templates) {
             Some(Template::Local(p)) => config.templates_dir.join(p),
             Some(Template::Remote(name, remote)) => {
+                Config::override_some_fields(&mut config, &remote.map);
+                dbg!(&remote.map);
+                dbg!(&config);
                 clone_remote_template(&config.temp_dir, name, remote)
             }
             None => {
@@ -107,9 +110,6 @@ pub fn init(cwd: PathBuf, config: Config, args: InitArgs) {
     if !config_file_path.exists() {
         config::create(&cwd, false, &ConfigCreateArgs { force: false });
     }
-
-    // Create new configuration
-    let config = Config::new_local(&cwd, Some(config_file_path));
 
     // Compile document with the new configuration
     let main_file = config.main_file.clone();
