@@ -1,0 +1,40 @@
+name: Build, Check, Test
+
+on:
+  push:
+    branches: [ "rust", "main" ]
+  pull_request:
+    branches: [ "rust", "main" ]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: cachix/install-nix-action@v18
+    - name: Build
+      run: nix-shell --run "cargo build -v"
+    - name: Run tests
+      run: nix-shell --run "cargo test -v"
+  clippy:
+    runs-on: ubuntu-latest
+    steps:
+        - uses: actions/checkout@v3
+        - uses: dtolnay/rust-toolchain@stable
+          with:
+              components: clippy
+        - name: run clippy
+          run: cargo clippy -- --deny warnings
+
+  rustfmt:
+    runs-on: ubuntu-latest
+    steps:
+        - uses: actions/checkout@v3
+        - uses: dtolnay/rust-toolchain@stable
+          with:
+              components: rustfmt
+        - name: run rustfmt
+          run: cargo fmt --check
