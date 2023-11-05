@@ -258,7 +258,10 @@ impl Config {
                                 _ => None,
                             };
 
-                            RemoteTemplate::new(url, path, branch, fields.clone())
+                            let mut remote_config = Config::default();
+                            Self::override_some_fields(&mut remote_config, fields);
+
+                            RemoteTemplate::new(url, path, branch, remote_config)
                         }
                         _ => {
                             eprintln!("Error in remote template '{}'. Must be string or table of options.", name);
@@ -302,16 +305,16 @@ pub struct RemoteTemplate {
     pub url: String,
     pub path: Option<PathBuf>,
     pub branch: Option<String>,
-    pub map: toml::map::Map<String, toml::Value>,
+    pub config: Config,
 }
 
 impl RemoteTemplate {
-    pub fn new(url: String, path: Option<PathBuf>, branch: Option<String>, map: Map<String, toml::Value>) -> Self {
-        Self { url, path, branch, map }
+    pub fn new(url: String, path: Option<PathBuf>, branch: Option<String>, config: Config) -> Self {
+        Self { url, path, branch, config }
     }
 
     pub fn from_url(url: String) -> Self {
-        Self::new(url, None, None, Map::new())
+        Self::new(url, None, None, Config::default())
     }
 }
 

@@ -47,7 +47,7 @@ pub fn init(cwd: PathBuf, mut config: Config, args: InitArgs) {
         Some(t) => match templates::search_templates(&t, &templates) {
             Some(Template::Local(p)) => config.templates_dir.join(p),
             Some(Template::Remote(name, remote)) => {
-                Config::override_some_fields(&mut config, &remote.map);
+                config = remote.config.clone();
                 clone_remote_template(&config.temp_dir, name, remote)
             }
             None => {
