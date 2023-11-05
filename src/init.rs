@@ -39,6 +39,8 @@ fn copy_directory(src: &PathBuf, dest: &PathBuf) {
     }
 }
 
+// TODO: Check if directory is empty
+// TODO: Check if directory has .blatex.toml
 pub fn init(cwd: PathBuf, mut config: Config, args: InitArgs) {
     let templates_dir = &config.templates_dir;
     let templates = templates::get_templates(templates_dir.as_path(), &config.remote_templates);

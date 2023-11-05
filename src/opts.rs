@@ -310,7 +310,12 @@ pub struct RemoteTemplate {
 
 impl RemoteTemplate {
     pub fn new(url: String, path: Option<PathBuf>, branch: Option<String>, config: Config) -> Self {
-        Self { url, path, branch, config }
+        Self {
+            url,
+            path,
+            branch,
+            config,
+        }
     }
 
     pub fn from_url(url: String) -> Self {

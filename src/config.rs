@@ -5,7 +5,6 @@ use crate::opts::{Config, ConfigCreateArgs};
 pub const LOCAL_CONFIG_FILE: &str = ".blatex.toml";
 
 pub fn create(cwd: &PathBuf, global: bool, args: &ConfigCreateArgs, config: &Config) {
-
     let description = if global {
         r#"# This file is the template used when creating local configuration files.
 # Options here will always get read, but may be overridden by local
