@@ -19,7 +19,7 @@ use crate::{
 #[derive(Debug)]
 pub enum Template {
     Local(PathBuf),
-    Remote(String, RemoteTemplate),
+    Remote(String, Box<RemoteTemplate>),
 }
 
 impl ToString for Template {
@@ -53,10 +53,10 @@ where
     templates.extend(
         remote_templates
             .iter()
-            .map(|(n, t)| Template::Remote(n.clone(), t.clone())),
+            .map(|(n, t)| Template::Remote(n.clone(), Box::new(t.clone()))),
     );
 
-    return templates;
+    templates
 }
 
 fn get_local_templates<P>(templates_dir: P) -> Vec<PathBuf>
@@ -128,14 +128,14 @@ pub fn add_paths(cwd: PathBuf, config: Config, args: TemplateAddArgs) {
 }
 
 fn add_path(
-    cwd: &PathBuf,
+    cwd: &Path,
     config: &Config,
     path: PathBuf,
     symlink: bool,
     force: bool,
     rename: Option<&String>,
 ) {
-    let path = PathBuf::from(path);
+    let path = path;
     let path_filename = path.file_name().unwrap();
 
     if symlink && !cfg!(unix) {

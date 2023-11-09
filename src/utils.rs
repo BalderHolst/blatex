@@ -1,16 +1,16 @@
 use std::{
     fs,
-    path::PathBuf,
+    path::{PathBuf, Path},
     process::{exit, Command},
 };
 
-pub fn replace_text(s: &String, pattern: &str, value: &str) -> String {
+pub fn replace_text(s: &str, pattern: &str, value: &str) -> String {
     let (first, second) = s.split_once(pattern).expect("pattern not found.");
     first.to_string() + value + second
 }
 
 /// Clones a repository and returns path to the root of the cloned directory.
-pub fn clone_repo(tmp_dir: &PathBuf, url: &str, branch: Option<&String>) -> PathBuf {
+pub fn clone_repo(tmp_dir: &Path, url: &str, branch: Option<&String>) -> PathBuf {
     // Path to a temporary directory for cloning repos into.
     let tmp_dir = tmp_dir.join("cloned_repo");
 
@@ -29,14 +29,14 @@ pub fn clone_repo(tmp_dir: &PathBuf, url: &str, branch: Option<&String>) -> Path
                 .arg("clone")
                 .arg("--branch")
                 .arg(b)
-                .arg(&url)
+                .arg(url)
                 .status()
                 .unwrap(),
             None => Command::new("git")
                 .arg("-C")
                 .arg(&tmp_dir)
                 .arg("clone")
-                .arg(&url)
+                .arg(url)
                 .status()
                 .unwrap(),
         }

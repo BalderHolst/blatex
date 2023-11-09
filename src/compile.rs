@@ -13,8 +13,8 @@ pub fn compile(cwd: PathBuf, config: Config, args: CompileArgs) {
     compile_file(cwd, config, main_file);
 }
 
-pub fn compile_file(cwd: PathBuf, config: Config, main_file: &String) {
-    let cmd = utils::replace_text(&config.compile_cmd, "<main-file>", main_file.as_str());
+pub fn compile_file(cwd: PathBuf, config: Config, main_file: &str) {
+    let cmd = utils::replace_text(&config.compile_cmd, "<main-file>", main_file);
     let prefix = format!("cd \"{}\"", config.root.display());
 
     let cmd = prefix + " && " + cmd.as_str();
@@ -55,5 +55,5 @@ pub fn compile_file(cwd: PathBuf, config: Config, main_file: &String) {
     };
 
     // Parse log file
-    log::print_log(cwd, main_file.as_str());
+    log::print_log(cwd, main_file);
 }

@@ -226,18 +226,14 @@ impl Config {
     }
 
     fn override_pathbuf_if_some_string(var: &mut PathBuf, value: Option<&toml::Value>) {
-        if let Some(toml_value) = value {
-            if let toml::Value::String(s) = toml_value {
-                *var = PathBuf::from(s);
-            }
+        if let Some(toml::Value::String(s)) = value {
+            *var = PathBuf::from(s);
         }
     }
 
     fn override_if_some_string(var: &mut String, value: Option<&toml::Value>) {
-        if let Some(toml_value) = value {
-            if let toml::Value::String(s) = toml_value {
-                *var = s.clone();
-            }
+        if let Some(toml::Value::String(s)) = value {
+            *var = s.clone();
         }
     }
 
@@ -324,11 +320,11 @@ impl Config {
                 Some((root, p)) => {
                     config.root = root;
                     p
-                },
+                }
                 None => {
                     eprintln!("WARNING: Could not find local config file `{}` in any parrent directories.", LOCAL_CONFIG_FILE);
                     return config;
-                },
+                }
             },
         };
 
@@ -384,7 +380,7 @@ impl Opts {
     pub fn create() -> Self {
         let cwd = get_cwd();
         let args = Args::parse();
-        let config = Config::new_local(&cwd, args.config_path.clone().map(|s| PathBuf::from(s)));
+        let config = Config::new_local(&cwd, args.config_path.clone().map(PathBuf::from));
         Self { args, config, cwd }
     }
 }

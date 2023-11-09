@@ -1,4 +1,4 @@
-use std::{fs, io::Cursor, path::PathBuf, process::exit};
+use std::{fs, io::Cursor, path::{PathBuf, Path}, process::exit};
 
 use fuzzy_finder::item::Item;
 use termion::color;
@@ -10,7 +10,7 @@ use crate::{
     utils,
 };
 
-fn clone_remote_template(tmp_dir: &PathBuf, name: &String, remote: &RemoteTemplate) -> PathBuf {
+fn clone_remote_template(tmp_dir: &Path, name: &String, remote: &RemoteTemplate) -> PathBuf {
     println!(
         "\n{}Cloning template '{}' from '{}'.{}",
         color::Fg(color::Blue),
@@ -27,7 +27,7 @@ fn clone_remote_template(tmp_dir: &PathBuf, name: &String, remote: &RemoteTempla
 }
 
 fn copy_directory(src: &PathBuf, dest: &PathBuf) {
-    fs::create_dir(&dest).unwrap();
+    fs::create_dir(dest).unwrap();
     for file in fs::read_dir(src).unwrap() {
         let file = file.unwrap().path();
         let file_name = file.file_name().unwrap();
