@@ -18,7 +18,7 @@ fn run(opts: Opts) {
     match opts.args.command {
         Command::Init(args) => init::init(opts.cwd, opts.config, args),
         Command::Compile(args) => compile::compile(opts.cwd, opts.config, args),
-        Command::Clean(args) => clean::clean(opts.cwd, opts.config, args),
+        Command::Clean(args) => clean::clean(opts.config, args),
         Command::Log(args) => {
             log::print_log(opts.cwd, &args.log_file.unwrap_or(opts.config.main_file))
         }
@@ -87,6 +87,7 @@ mod tests {
         // config_file: todo!(),
         // temp_dir: todo!(),
         let mut config = Config::default();
+        config.root = cwd.clone();
         config.data_dir = PathBuf::from(TEST_DIR.to_string() + DATA_DIR);
         config.templates_dir = PathBuf::from(TEST_DIR.to_string() + TEMPLATES_DIR);
         config.temp_dir = PathBuf::from(TEST_DIR.to_string() + TEMP_DIR);
@@ -106,6 +107,7 @@ mod tests {
     #[test]
     #[serial]
     fn test_compile_and_clean() {
+        print!("test_compile_and_clean");
         #[allow(unused_variables)]
         let (ctx, opts) = setup!("compile");
         fs::copy("./tests/main1.tex", opts.cwd.join("main.tex")).unwrap();
@@ -121,6 +123,7 @@ mod tests {
     #[test]
     #[serial]
     fn test_add_and_compile() {
+        print!("test_add_and_compile");
         #[allow(unused_variables)]
         let (ctx, opts) = setup!("templates", "add", "templates");
         let add_opts = opts.clone();
@@ -143,6 +146,7 @@ mod tests {
     #[test]
     #[serial]
     fn rename_add_templates() {
+        print!("rename_add_templates");
         #[allow(unused_variables)]
         // Rename directory
         let (ctx, opts) = setup!("templates", "add", "-r", "test_templates", "templates");

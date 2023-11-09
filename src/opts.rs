@@ -148,6 +148,10 @@ pub struct ConfigCreateArgs {
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Config {
+    /// The root directory in the document folder structure; The directory containing the
+    /// `.blatex.toml` file.
+    pub root: PathBuf,
+
     /// The main entry point for the latex compiler
     pub main_file: String,
 
@@ -175,8 +179,19 @@ pub struct Config {
     pub remote_templates: HashMap<String, RemoteTemplate>,
 }
 
+fn get_cwd() -> PathBuf {
+    match std::env::current_dir() {
+        Ok(d) => d,
+        Err(e) => {
+            eprintln!("Error getting current directory: {e}");
+            exit(1);
+        }
+    }
+}
+
 impl Default for Config {
     fn default() -> Self {
+        let root = get_cwd();
         let proj_dirs = ProjectDirs::from("com", "blatex", "blatex").unwrap();
         let data_dir = proj_dirs.data_dir().to_path_buf();
         let templates_dir = data_dir.join("templates");
@@ -184,6 +199,7 @@ impl Default for Config {
         let temp_dir = proj_dirs.cache_dir().join("tmp");
 
         Config {
+            root,
             data_dir,
             templates_dir,
             config_file: config_dir,
@@ -280,12 +296,41 @@ impl Config {
         config
     }
 
-    pub fn new_local(cwd: &PathBuf, local_config_file: Option<PathBuf>) -> Self {
+    /// Returns (root, local_config_path)
+    fn find_local_config(dir: &PathBuf) -> Option<(PathBuf, PathBuf)> {
+        let config_path = dir.join(LOCAL_CONFIG_FILE);
+        if config_path.exists() {
+            Some((dir.to_owned(), config_path))
+        } else {
+            let parrent = match dir.parent() {
+                Some(p) => p.to_path_buf(),
+                None => {
+                    eprintln!("WARNING: Could not find local configuration file `{}` in any upper directory.", LOCAL_CONFIG_FILE);
+                    return None;
+                }
+            };
+            Self::find_local_config(&parrent)
+        }
+    }
+
+    pub fn new_local(cwd: &PathBuf, provided_config_file: Option<PathBuf>) -> Self {
         let mut config = Config::new_global();
 
-        let default_config = local_config_file.is_none();
+        let default_config = provided_config_file.is_none();
 
-        let local_config_file = local_config_file.unwrap_or(cwd.join(LOCAL_CONFIG_FILE));
+        let local_config_file = match provided_config_file {
+            Some(p) => p,
+            None => match Self::find_local_config(cwd) {
+                Some((root, p)) => {
+                    config.root = root;
+                    p
+                },
+                None => {
+                    eprintln!("WARNING: Could not find local config file `{}` in any parrent directories.", LOCAL_CONFIG_FILE);
+                    return config;
+                },
+            },
+        };
 
         if let Ok(toml) = fs::read_to_string(&local_config_file) {
             let local_config: Map<String, toml::Value> = toml::from_str(toml.as_str()).unwrap();
@@ -337,13 +382,7 @@ pub struct Opts {
 
 impl Opts {
     pub fn create() -> Self {
-        let cwd = match std::env::current_dir() {
-            Ok(d) => d,
-            Err(e) => {
-                eprintln!("Error getting current directory: {e}");
-                exit(1);
-            }
-        };
+        let cwd = get_cwd();
         let args = Args::parse();
         let config = Config::new_local(&cwd, args.config_path.clone().map(|s| PathBuf::from(s)));
         Self { args, config, cwd }

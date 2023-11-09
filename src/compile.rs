@@ -15,7 +15,7 @@ pub fn compile(cwd: PathBuf, config: Config, args: CompileArgs) {
 
 pub fn compile_file(cwd: PathBuf, config: Config, main_file: &String) {
     let cmd = utils::replace_text(&config.compile_cmd, "<main-file>", main_file.as_str());
-    let prefix = format!("cd \"{}\"", cwd.display());
+    let prefix = format!("cd \"{}\"", config.root.display());
 
     let cmd = prefix + " && " + cmd.as_str();
 

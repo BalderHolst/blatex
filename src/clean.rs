@@ -1,5 +1,3 @@
-use std::path::PathBuf;
-
 use termion::color::{self, Fg};
 
 use crate::{
@@ -7,11 +5,11 @@ use crate::{
     utils,
 };
 
-pub fn clean(cwd: PathBuf, config: Config, args: CleanArgs) {
+pub fn clean(config: Config, args: CleanArgs) {
     let main_file = &args.main_file.unwrap_or(config.main_file.clone());
 
     let cmd = utils::replace_text(&config.clean_cmd, "<main-file>", main_file.as_str());
-    let prefix = format!("cd \"{}\"", cwd.display());
+    let prefix = format!("cd \"{}\"", config.root.display());
 
     let cmd = prefix + " && " + cmd.as_str();
 
