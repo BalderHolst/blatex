@@ -17,6 +17,12 @@ jobs:
     - uses: cachix/install-nix-action@v18
     - name: Build
       run: nix-shell --run "cargo build -v"
+  test:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+    - uses: actions/checkout@v3
+    - uses: cachix/install-nix-action@v18
     - name: Run tests
       run: nix-shell --run "cargo test -v"
   clippy:
