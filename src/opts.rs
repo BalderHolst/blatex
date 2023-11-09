@@ -319,7 +319,7 @@ impl Config {
                     p
                 }
                 None => {
-                    eprintln!("WARNING: Could not find local config file `{}` in any parrent directories.", LOCAL_CONFIG_FILE);
+                    // We cannot find a local config
                     return config;
                 }
             },

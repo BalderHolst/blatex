@@ -40,7 +40,7 @@ pub fn create(cwd: &Path, global: bool, args: &ConfigCreateArgs, config: &Config
 
     fs::write(&dest, toml).unwrap();
     println!(
-        "Wrote {} default config `{}`",
+        "Wrote {} config `{}`",
         if global { "global" } else { "local" },
         dest.display()
     );

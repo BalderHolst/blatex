@@ -44,69 +44,76 @@ fn copy_directory(src: &PathBuf, dest: &PathBuf) {
     }
 }
 
-// TODO: Check if directory is empty
-// TODO: Check if directory has .blatex.toml
 pub fn init(cwd: PathBuf, mut config: Config, args: InitArgs) {
-    let templates_dir = &config.templates_dir;
-    let templates = templates::get_templates(templates_dir.as_path(), &config.remote_templates);
+    // Make sure that the folder is not already initialized
+    if config.root.join(LOCAL_CONFIG_FILE).exists() {
+        println!("Document already initialized.");
+        exit(0);
+    }
 
-    let template_path = match args.template {
-        Some(t) => match templates::search_templates(&t, &templates) {
-            Some(Template::Local(p)) => config.templates_dir.join(p),
-            Some(Template::Remote(name, remote)) => {
-                config = remote.config.clone();
-                clone_remote_template(&config.temp_dir, name, remote)
-            }
-            None => {
-                eprintln!("Could not find template '{}'.", t);
-                exit(1)
-            }
-        },
-        None => {
-            // Create fuzzy finder items
-            let items: Vec<Item<&Template>> = templates
-                .iter()
-                .map(|t| Item::new(t.to_string(), t))
-                .collect();
+    let c = fs::read_dir(&config.root).unwrap().count();
+    if c == 0 {
+        let templates_dir = &config.templates_dir;
+        let templates = templates::get_templates(templates_dir.as_path(), &config.remote_templates);
 
-            // Calculate number of items depending on height of the terminal window and number of
-            // templates.
-            let nr_of_items = match termion::terminal_size() {
-                Ok((_cols, rows)) => u16::min(items.len() as u16, rows / 5 * 3),
-                Err(_) => 8,
-            };
-
-            // Run the fuzzy finder
-            match fuzzy_finder::FuzzyFinder::find(items, nr_of_items as i8).unwrap() {
+        let template_path = match args.template {
+            Some(t) => match templates::search_templates(&t, &templates) {
                 Some(Template::Local(p)) => config.templates_dir.join(p),
                 Some(Template::Remote(name, remote)) => {
                     config = remote.config.clone();
                     clone_remote_template(&config.temp_dir, name, remote)
                 }
                 None => {
-                    eprintln!("No template chosen.");
-                    exit(1);
+                    eprintln!("Could not find template '{}'.", t);
+                    exit(1)
+                }
+            },
+            None => {
+                // Create fuzzy finder items
+                let items: Vec<Item<&Template>> = templates
+                    .iter()
+                    .map(|t| Item::new(t.to_string(), t))
+                    .collect();
+
+                // Calculate number of items depending on height of the terminal window and number of
+                // templates.
+                let nr_of_items = match termion::terminal_size() {
+                    Ok((_cols, rows)) => u16::min(items.len() as u16, rows / 5 * 3),
+                    Err(_) => 8,
+                };
+
+                // Run the fuzzy finder
+                match fuzzy_finder::FuzzyFinder::find(items, nr_of_items as i8).unwrap() {
+                    Some(Template::Local(p)) => config.templates_dir.join(p),
+                    Some(Template::Remote(name, remote)) => {
+                        config = remote.config.clone();
+                        clone_remote_template(&config.temp_dir, name, remote)
+                    }
+                    None => {
+                        eprintln!("No template chosen.");
+                        exit(1);
+                    }
                 }
             }
-        }
-    };
+        };
 
-    // If the template is an archive, extract it to the current working directory
-    if template_path.is_file() {
-        let archive_bytes = fs::read(template_path).unwrap();
-        zip_extract::extract(Cursor::new(archive_bytes), &cwd, true).unwrap();
-    }
-    // If template path is a directory (can happen when using remote templates), simply copy its
-    // contents.
-    else {
-        for file in fs::read_dir(template_path).unwrap() {
-            let file = file.unwrap().path();
-            let file_name = file.file_name().unwrap().to_str().unwrap();
-            let dest = cwd.join(file_name);
-            if file.is_dir() {
-                copy_directory(&file, &dest)
-            } else {
-                fs::copy(&file, dest).unwrap();
+        // If the template is an archive, extract it to the current working directory
+        if template_path.is_file() {
+            let archive_bytes = fs::read(template_path).unwrap();
+            zip_extract::extract(Cursor::new(archive_bytes), &cwd, true).unwrap();
+        }
+        // If template path is a directory (can happen when using remote templates), simply copy its
+        // contents.
+        else {
+            for file in fs::read_dir(template_path).unwrap() {
+                let file = file.unwrap().path();
+                let file_name = file.file_name().unwrap().to_str().unwrap();
+                let dest = cwd.join(file_name);
+                if file.is_dir() {
+                    copy_directory(&file, &dest)
+                } else {
+                    fs::copy(&file, dest).unwrap();
+                }
             }
         }
     }
@@ -115,6 +122,7 @@ pub fn init(cwd: PathBuf, mut config: Config, args: InitArgs) {
     let config_file_path = PathBuf::from(LOCAL_CONFIG_FILE);
     if !config_file_path.exists() {
         config::create(&cwd, false, &ConfigCreateArgs { force: false }, &config);
+        println!()
     }
 
     // Compile document with the new configuration
