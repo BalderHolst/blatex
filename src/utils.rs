@@ -1,6 +1,6 @@
 use std::{
     fs,
-    path::{PathBuf, Path},
+    path::{Path, PathBuf},
     process::{exit, Command},
 };
 

@@ -1,4 +1,9 @@
-use std::{fs, io::Cursor, path::{PathBuf, Path}, process::exit};
+use std::{
+    fs,
+    io::Cursor,
+    path::{Path, PathBuf},
+    process::exit,
+};
 
 use fuzzy_finder::item::Item;
 use termion::color;
