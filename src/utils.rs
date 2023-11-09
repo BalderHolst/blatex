@@ -16,9 +16,22 @@ pub fn clone_repo(tmp_dir: &Path, url: &str, branch: Option<&String>) -> PathBuf
 
     // Clear the directory: Delete it if it exists and recreate it
     if tmp_dir.exists() {
-        fs::remove_dir_all(&tmp_dir).unwrap();
+        if let Err(e) = fs::remove_dir_all(&tmp_dir) {
+            eprintln!(
+                "Could not remove temporary directory '{}': {}",
+                tmp_dir.display(),
+                e
+            );
+            exit(1)
+        }
     }
-    fs::create_dir(&tmp_dir).unwrap();
+    if let Err(e) = fs::create_dir(&tmp_dir) {
+        eprintln!(
+            "Could not create temporary directory '{}': {}",
+            tmp_dir.display(),
+            e
+        )
+    }
 
     // Clone the repo inside the temporary directory
     let status = {
