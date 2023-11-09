@@ -135,7 +135,6 @@ fn add_path(
     force: bool,
     rename: Option<&String>,
 ) {
-    let path = path;
     let path_filename = path.file_name().unwrap();
 
     if symlink && !cfg!(unix) {
