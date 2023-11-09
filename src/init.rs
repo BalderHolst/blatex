@@ -121,11 +121,33 @@ pub fn init(cwd: PathBuf, mut config: Config, args: InitArgs) {
     // Create configuration file if it does not exist
     let config_file_path = PathBuf::from(LOCAL_CONFIG_FILE);
     if !config_file_path.exists() {
+        // if the main file in the config does not exist, force the user to pick an existing one
+        // with a fuzzy finder.
+        if !config.root.join(&config.main_file).exists() {
+            if let Ok(dir) = fs::read_dir(&config.root) {
+                let items: Vec<fuzzy_finder::item::Item<PathBuf>> = dir
+                    .filter_map(|file| {
+                        let file = file.unwrap();
+                        let file_name = file.file_name().to_str().map(|s| s.to_string());
+                        file_name
+                            .map(|s| fuzzy_finder::item::Item::new(s.clone(), PathBuf::from(s)))
+                    })
+                    .collect();
+                let l = items.len();
+                match fuzzy_finder::FuzzyFinder::find(items, i8::min(l as i8, 8)) {
+                    Ok(Some(p)) => config.main_file = p,
+                    _ => {
+                        eprintln!("\nNo file chosen.");
+                        exit(1)
+                    }
+                }
+            }
+        }
         config::create(&cwd, false, &ConfigCreateArgs { force: false }, &config);
         println!()
     }
 
     // Compile document with the new configuration
     let main_file = config.main_file.clone();
-    crate::compile::compile_file(cwd, config, &main_file);
+    crate::compile::compile_file(cwd, config, main_file);
 }

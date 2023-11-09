@@ -9,12 +9,19 @@ use crate::{
 };
 
 pub fn compile(cwd: PathBuf, config: Config, args: CompileArgs) {
-    let main_file = &args.main_file.unwrap_or(config.main_file.clone());
+    let main_file = match args.main_file {
+        Some(f) => PathBuf::from(f),
+        None => config.main_file.clone(),
+    };
     compile_file(cwd, config, main_file);
 }
 
-pub fn compile_file(cwd: PathBuf, config: Config, main_file: &str) {
-    let cmd = utils::replace_text(&config.compile_cmd, "<main-file>", main_file);
+pub fn compile_file(cwd: PathBuf, config: Config, main_file: PathBuf) {
+    let cmd = utils::replace_text(
+        &config.compile_cmd,
+        "<main-file>",
+        main_file.display().to_string().as_str(),
+    );
     let prefix = format!("cd \"{}\"", config.root.display());
 
     let cmd = prefix + " && " + cmd.as_str();
@@ -55,5 +62,5 @@ pub fn compile_file(cwd: PathBuf, config: Config, main_file: &str) {
     };
 
     // Parse log file
-    log::print_log(cwd, main_file);
+    log::print_log(cwd, &main_file);
 }

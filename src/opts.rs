@@ -153,7 +153,7 @@ pub struct Config {
     pub root: PathBuf,
 
     /// The main entry point for the latex compiler
-    pub main_file: String,
+    pub main_file: PathBuf,
 
     /// Command for compiling document. <main-file> will be substituted with the `main_file`
     /// configuration field.
@@ -204,7 +204,7 @@ impl Default for Config {
             templates_dir,
             config_file: config_dir,
             temp_dir,
-            main_file: "main.tex".to_string(),
+            main_file: PathBuf::from("main.tex"),
             compile_cmd:
                 "latexmk -pdf -bibtex-cond -shell-escape -interaction=nonstopmode <main-file>"
                     .to_string(),
@@ -220,7 +220,7 @@ impl Config {
         Self::override_pathbuf_if_some_string(&mut config.templates_dir, map.get("templates_dir"));
         Self::override_pathbuf_if_some_string(&mut config.config_file, map.get("config_file"));
         Self::override_pathbuf_if_some_string(&mut config.temp_dir, map.get("temp_dir"));
-        Self::override_if_some_string(&mut config.main_file, map.get("main_file"));
+        Self::override_pathbuf_if_some_string(&mut config.main_file, map.get("main_file"));
         Self::override_if_some_string(&mut config.compile_cmd, map.get("compile_cmd"));
         Self::override_if_some_string(&mut config.clean_cmd, map.get("clean_cmd"));
     }

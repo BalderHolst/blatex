@@ -7,6 +7,8 @@ mod opts;
 mod templates;
 mod utils;
 
+use std::path::PathBuf;
+
 use opts::{Command, Opts};
 
 fn main() {
@@ -19,9 +21,13 @@ fn run(opts: Opts) {
         Command::Init(args) => init::init(opts.cwd, opts.config, args),
         Command::Compile(args) => compile::compile(opts.cwd, opts.config, args),
         Command::Clean(args) => clean::clean(opts.config, args),
-        Command::Log(args) => {
-            log::print_log(opts.cwd, &args.log_file.unwrap_or(opts.config.main_file))
-        }
+        Command::Log(args) => log::print_log(
+            opts.cwd,
+            &match &args.log_file {
+                Some(s) => PathBuf::from(s),
+                None => opts.config.main_file,
+            },
+        ),
         Command::Templates(args) => match args.template_command {
             opts::TemplateCommand::Add(args) => templates::add_paths(opts.cwd, opts.config, args),
             opts::TemplateCommand::AddRepo(args) => {

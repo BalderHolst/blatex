@@ -1,6 +1,6 @@
 use std::{path::PathBuf, process::exit};
 
-pub fn print_log(cwd: PathBuf, main_file: &str) {
+pub fn print_log(cwd: PathBuf, main_file: &PathBuf) {
     let log_file = cwd.join(main_file).with_extension("log");
 
     if !log_file.is_file() {
