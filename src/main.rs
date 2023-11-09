@@ -113,11 +113,12 @@ mod tests {
         fs::copy("./tests/main1.tex", opts.cwd.join("main.tex")).unwrap();
         run(opts.clone());
         assert!(opts.cwd.join("main.log").exists());
-        assert!(opts.cwd.join("main.out").exists());
+        assert!(opts.cwd.join("main.pdf").exists());
         let clean_opts = Opts::create_mock(vec!["clean"], opts.config, opts.cwd);
         run(clean_opts.clone());
         assert!(!clean_opts.cwd.join("main.log").exists());
         assert!(!clean_opts.cwd.join("main.out").exists());
+        assert!(clean_opts.cwd.join("main.pdf").exists());
     }
 
     #[test]
