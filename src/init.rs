@@ -128,9 +128,13 @@ pub fn init(cwd: PathBuf, mut config: Config, args: InitArgs) {
                 let items: Vec<fuzzy_finder::item::Item<PathBuf>> = dir
                     .filter_map(|file| {
                         let file = file.unwrap();
-                        let file_name = file.file_name().to_str().map(|s| s.to_string());
-                        file_name
-                            .map(|s| fuzzy_finder::item::Item::new(s.clone(), PathBuf::from(s)))
+                        if file.path().is_file() {
+                            let file_name = file.file_name().to_str().map(|s| s.to_string());
+                            file_name
+                                .map(|s| fuzzy_finder::item::Item::new(s.clone(), PathBuf::from(s)))
+                        } else {
+                            None
+                        }
                     })
                     .collect();
                 let l = items.len();
