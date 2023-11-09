@@ -300,10 +300,7 @@ impl Config {
         } else {
             let parrent = match dir.parent() {
                 Some(p) => p.to_path_buf(),
-                None => {
-                    eprintln!("WARNING: Could not find local configuration file `{}` in any upper directory.", LOCAL_CONFIG_FILE);
-                    return None;
-                }
+                None => return None,
             };
             Self::find_local_config(&parrent)
         }
