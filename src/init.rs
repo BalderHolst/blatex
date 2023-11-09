@@ -73,7 +73,7 @@ pub fn init(cwd: PathBuf, mut config: Config, args: InitArgs) {
 
             // Run the fuzzy finder
             match fuzzy_finder::FuzzyFinder::find(items, nr_of_items as i8).unwrap() {
-                Some(Template::Local(p)) => p.to_path_buf(),
+                Some(Template::Local(p)) => config.templates_dir.join(p),
                 Some(Template::Remote(name, remote)) => {
                     config = remote.config.clone();
                     clone_remote_template(&config.temp_dir, name, remote)
