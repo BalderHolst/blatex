@@ -19,14 +19,17 @@ use crate::{
 #[derive(Debug)]
 pub enum Template {
     Local(PathBuf),
-    Remote(String, Box<RemoteTemplate>),
+    Remote {
+        name: String,
+        remote: Box<RemoteTemplate>,
+    },
 }
 
 impl ToString for Template {
     fn to_string(&self) -> String {
         match self {
             Template::Local(p) => p.to_str().unwrap().to_string(),
-            Template::Remote(name, _r) => format!(
+            Template::Remote { name, remote: _ } => format!(
                 "{}{} (remote){}",
                 color::Fg(color::Magenta),
                 name,
@@ -50,11 +53,10 @@ where
         .collect();
 
     // Insert the remote templates
-    templates.extend(
-        remote_templates
-            .iter()
-            .map(|(n, t)| Template::Remote(n.clone(), Box::new(t.clone()))),
-    );
+    templates.extend(remote_templates.iter().map(|(n, t)| Template::Remote {
+        name: n.clone(),
+        remote: Box::new(t.clone()),
+    }));
 
     templates
 }
@@ -85,7 +87,7 @@ pub fn search_templates<'a>(name: &String, templates: &'a Vec<Template>) -> Opti
                     return Some(t);
                 }
             }
-            Template::Remote(n, _r) => {
+            Template::Remote { name: n, remote: _ } => {
                 if n == name {
                     return Some(t);
                 }
