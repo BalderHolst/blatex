@@ -189,7 +189,10 @@ fn get_cwd() -> PathBuf {
 impl Default for Config {
     fn default() -> Self {
         let root = get_cwd();
-        let proj_dirs = ProjectDirs::from("com", "blatex", "blatex").unwrap();
+        let proj_dirs = match ProjectDirs::from("com", "blatex", "blatex") {
+            Some(dirs) => dirs,
+            None => exit_with_error!("Could not determine application directories."),
+        };
         let data_dir = proj_dirs.data_dir().to_path_buf();
         let templates_dir = data_dir.join("templates");
         let config_dir = proj_dirs.config_dir().join("blatex.toml");
@@ -234,13 +237,29 @@ impl Config {
         }
     }
 
+    fn parse_toml(s: &str) -> Map<String, toml::Value> {
+        match toml::from_str(s) {
+            Ok(c) => c,
+            Err(e) => exit_with_error!("{e}"),
+        }
+    }
+
     pub fn new_global() -> Self {
         let mut config = Config::default();
 
         if config.config_file.is_file() {
-            let global_toml = fs::read_to_string(&config.config_file).unwrap();
-            let global_config: Map<String, toml::Value> =
-                toml::from_str(global_toml.as_str()).unwrap();
+            let global_toml = match fs::read_to_string(&config.config_file) {
+                Ok(toml) => toml,
+                Err(e) => {
+                    eprintln!(
+                        "Could not read global configuration file at '{}': {}",
+                        config.config_file.display(),
+                        e
+                    );
+                    return config;
+                }
+            };
+            let global_config: Map<String, toml::Value> = Self::parse_toml(global_toml.as_str());
 
             if let Some(toml::Value::Table(table)) = global_config.get(REMOTE_TEMPLATES_OPTION) {
                 for (name, value) in table.iter() {
@@ -322,7 +341,7 @@ impl Config {
         };
 
         if let Ok(toml) = fs::read_to_string(&local_config_file) {
-            let local_config: Map<String, toml::Value> = toml::from_str(toml.as_str()).unwrap();
+            let local_config: Map<String, toml::Value> = Self::parse_toml(toml.as_str());
             Self::override_some_fields(&mut config, &local_config);
         } else if !default_config {
             eprintln!(

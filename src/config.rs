@@ -18,14 +18,15 @@ pub fn create(cwd: &Path, global: bool, args: &ConfigCreateArgs, config: &Config
         "# This is your local configuration for this project.\n# Options here will override global ones.\n"
     };
 
-    let toml = format!(
-        "{}{}",
-        description,
-        toml::to_string_pretty(&config).unwrap_or({
+    let config_string = match toml::to_string_pretty(&config) {
+        Ok(s) => s,
+        Err(_) => {
             eprintln!("WARNING: Could not convert configuration to toml.");
             "".to_string()
-        })
-    );
+        }
+    };
+
+    let toml = format!("{}{}", description, config_string);
 
     let dest = if global {
         Config::default().config_file
