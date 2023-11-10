@@ -15,4 +15,3 @@ texlog = { git = "https://github.com/BalderHolst/texlog" }
 toml = "0.8.2"
 zip = "0.6.6"
 zip-extensions = "0.6.2"
-zip-extract = "0.1.2"
