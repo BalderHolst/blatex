@@ -1,11 +1,12 @@
-use std::{path::PathBuf, process::exit};
+use std::path::PathBuf;
+
+use crate::exit_with_error;
 
 pub fn print_log(cwd: PathBuf, main_file: &PathBuf) {
     let log_file = cwd.join(main_file).with_extension("log");
 
     if !log_file.is_file() {
-        eprintln!("Cannot find log file `{}`.", log_file.display());
-        exit(1);
+        exit_with_error!("Cannot find log file `{}`.", log_file.display());
     }
 
     let log = texlog::log::Log::from_path(log_file);

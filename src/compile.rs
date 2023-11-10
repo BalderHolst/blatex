@@ -3,7 +3,7 @@ use std::path::PathBuf;
 use termion::color::{self, Fg};
 
 use crate::{
-    log,
+    exit_with_error, log,
     opts::{CompileArgs, Config},
     utils,
 };
@@ -34,8 +34,7 @@ pub fn compile_file(cwd: PathBuf, config: Config, main_file: PathBuf) {
     );
 
     let status = if cfg!(target_os = "windows") {
-        eprintln!("Compilation on windows is currently not supported.");
-        std::process::exit(1);
+        exit_with_error!("Compilation on windows is currently not supported.");
     } else {
         std::process::Command::new("sh")
             .arg("-c")
@@ -47,7 +46,7 @@ pub fn compile_file(cwd: PathBuf, config: Config, main_file: PathBuf) {
     match status.code() {
         Some(code) => {
             if code != 0 {
-                eprintln!(
+                exit_with_error!(
                     "\n{}Compilation process exited with non-zero exit code: {}{}",
                     Fg(color::Red),
                     code,
@@ -56,8 +55,7 @@ pub fn compile_file(cwd: PathBuf, config: Config, main_file: PathBuf) {
             }
         }
         None => {
-            eprintln!("Compilation process stopped unexpectedly");
-            std::process::exit(1)
+            exit_with_error!("Compilation process stopped unexpectedly");
         }
     };
 

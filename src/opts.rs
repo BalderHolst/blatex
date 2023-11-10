@@ -1,11 +1,11 @@
-use std::{collections::HashMap, fs, path::PathBuf, process::exit};
+use std::{collections::HashMap, fs, path::PathBuf};
 
 use clap::{Parser, Subcommand};
 use directories::ProjectDirs;
 use serde::{Deserialize, Serialize};
 use toml::map::Map;
 
-use crate::config::LOCAL_CONFIG_FILE;
+use crate::{config::LOCAL_CONFIG_FILE, exit_with_error};
 
 const REMOTE_TEMPLATES_OPTION: &str = "templates";
 
@@ -182,10 +182,7 @@ pub struct Config {
 fn get_cwd() -> PathBuf {
     match std::env::current_dir() {
         Ok(d) => d,
-        Err(e) => {
-            eprintln!("Error getting current directory: {e}");
-            exit(1);
-        }
+        Err(e) => exit_with_error!("Error getting current directory: {e}"),
     }
 }
 
@@ -253,13 +250,12 @@ impl Config {
                             let url = match fields.get("repo") {
                                 Some(toml::Value::String(r)) => r.clone(),
                                 Some(_) => {
-                                    eprintln!("ERROR: Repository url must be string.");
-                                    exit(1)
+                                    exit_with_error!("ERROR: Repository url must be string.")
                                 }
-                                None => {
-                                    eprintln!("ERROR: Repository for '{}' is not defined.", name);
-                                    exit(1)
-                                }
+                                None => exit_with_error!(
+                                    "ERROR: Repository for '{}' is not defined.",
+                                    name
+                                ),
                             };
                             let path = match fields.get("path") {
                                 Some(toml::Value::String(p)) => Some(PathBuf::from(p)),
@@ -275,10 +271,10 @@ impl Config {
 
                             RemoteTemplate::new(url, path, branch, remote_config)
                         }
-                        _ => {
-                            eprintln!("Error in remote template '{}'. Must be string or table of options.", name);
-                            exit(1)
-                        }
+                        _ => exit_with_error!(
+                            "Error in remote template '{}'. Must be string or table of options.",
+                            name
+                        ),
                     };
                     config
                         .remote_templates

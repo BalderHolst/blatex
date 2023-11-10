@@ -10,6 +10,7 @@ use termion::color;
 
 use crate::{
     config::{self, LOCAL_CONFIG_FILE},
+    exit_with_error,
     opts::{Config, ConfigCreateArgs, InitArgs, RemoteTemplate},
     templates::{self, Template},
     utils,
@@ -63,10 +64,7 @@ pub fn init(cwd: PathBuf, mut config: Config, args: InitArgs) {
                     config = remote.config.clone();
                     clone_remote_template(&config.temp_dir, name, remote)
                 }
-                None => {
-                    eprintln!("Could not find template '{}'.", t);
-                    exit(1)
-                }
+                None => exit_with_error!("Could not find template '{}'.", t),
             },
             None => {
                 // Create fuzzy finder items
@@ -89,10 +87,7 @@ pub fn init(cwd: PathBuf, mut config: Config, args: InitArgs) {
                         config = remote.config.clone();
                         clone_remote_template(&config.temp_dir, name, remote)
                     }
-                    None => {
-                        eprintln!("No template chosen.");
-                        exit(1);
-                    }
+                    None => exit_with_error!("No template chosen."),
                 }
             }
         };
@@ -140,10 +135,7 @@ pub fn init(cwd: PathBuf, mut config: Config, args: InitArgs) {
                 let l = items.len();
                 match fuzzy_finder::FuzzyFinder::find(items, i8::min(l as i8, 8)) {
                     Ok(Some(p)) => config.main_file = p,
-                    _ => {
-                        eprintln!("\nNo file chosen.");
-                        exit(1)
-                    }
+                    _ => exit_with_error!("\nNo file chosen."),
                 }
             }
         }

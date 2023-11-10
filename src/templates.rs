@@ -3,7 +3,6 @@ use std::{
     ffi::OsStr,
     fs, io, os,
     path::{Path, PathBuf},
-    process::exit,
 };
 
 use termion::{
@@ -12,6 +11,7 @@ use termion::{
 };
 
 use crate::{
+    exit_with_error,
     opts::{Config, RemoteTemplate, TemplateAddArgs, TemplateAddRepoArgs},
     utils,
 };
@@ -113,8 +113,7 @@ fn copy_dir_all(src: impl AsRef<Path>, dst: impl AsRef<Path>) -> io::Result<()> 
 
 pub fn add_paths(cwd: PathBuf, config: Config, args: TemplateAddArgs) {
     if args.rename.is_some() && args.paths.len() != 1 {
-        eprintln!("Cannot rename when adding more than one file or directory.");
-        exit(1)
+        exit_with_error!("Cannot rename when adding more than one file or directory.");
     }
 
     for p in args.paths {
@@ -140,8 +139,7 @@ fn add_path(
     let path_filename = path.file_name().unwrap();
 
     if symlink && !cfg!(unix) {
-        eprintln!("You can only use symlinks om UNIX systems.");
-        exit(1);
+        exit_with_error!("You can only use symlinks om UNIX systems.");
     }
 
     let templates_dir = &config.templates_dir;
@@ -158,11 +156,11 @@ fn add_path(
 
     if dest.exists() {
         if !force {
-            match path_filename.to_str() {
-                Some(n) => eprintln!("Template `{}` already exists. Use --force to override.", n),
-                None => eprintln!("Template already exists. Use --force to override."),
-            }
-            exit(1)
+            let e = match path_filename.to_str() {
+                Some(n) => format!("Template `{}` already exists. Use --force to override.", n),
+                None => "Template already exists. Use --force to override.".to_string(),
+            };
+            exit_with_error!("{e}");
         }
         {
             if dest.is_dir() {
@@ -183,8 +181,7 @@ fn add_path(
 
     if path.is_file() {
         if Some(OsStr::new("zip")) != path.extension() {
-            eprintln!("Templates should be zip files.");
-            exit(1);
+            exit_with_error!("Templates should be zip files.");
         }
 
         // Make sure that parent of added file exists
@@ -203,8 +200,7 @@ fn add_path(
             copy_dir_all(path.as_path(), dest).unwrap();
         }
     } else {
-        eprintln!("File `{}` is neither file or directory.", path.display());
-        exit(1);
+        exit_with_error!("File `{}` is neither file or directory.", path.display());
     }
 }
 
@@ -254,11 +250,11 @@ pub fn add_repo(cwd: PathBuf, config: Config, args: TemplateAddRepoArgs) {
         Some(sub_path) => {
             let p = cloned_repo_root.join(&sub_path);
             if !p.is_dir() {
-                eprintln!(
+                exit_with_error!(
                     "Path `{}` is not a directory within repository at `{}`.",
-                    sub_path, args.url
+                    sub_path,
+                    args.url
                 );
-                exit(1);
             }
             p
         }

@@ -1,6 +1,9 @@
-use std::{fs, path::Path, process::exit};
+use std::{fs, path::Path};
 
-use crate::opts::{Config, ConfigCreateArgs};
+use crate::{
+    exit_with_error,
+    opts::{Config, ConfigCreateArgs},
+};
 
 pub const LOCAL_CONFIG_FILE: &str = ".blatex.toml";
 
@@ -28,11 +31,10 @@ pub fn create(cwd: &Path, global: bool, args: &ConfigCreateArgs, config: &Config
     };
 
     if !args.force && dest.exists() {
-        eprintln!(
+        exit_with_error!(
             "File `{}` already exists. Run with --force to override.",
             dest.display()
         );
-        exit(1)
     }
 
     // Create directory if it does not exist

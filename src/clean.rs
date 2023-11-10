@@ -3,6 +3,7 @@ use std::path::PathBuf;
 use termion::color::{self, Fg};
 
 use crate::{
+    exit_with_error,
     opts::{CleanArgs, Config},
     utils,
 };
@@ -31,8 +32,7 @@ pub fn clean(config: Config, args: CleanArgs) {
     );
 
     let status = if cfg!(target_os = "windows") {
-        eprintln!("Cleaning on windows is currently not supported.");
-        std::process::exit(1);
+        exit_with_error!("Cleaning on windows is currently not supported.");
     } else {
         std::process::Command::new("sh")
             .arg("-c")
@@ -44,18 +44,16 @@ pub fn clean(config: Config, args: CleanArgs) {
     match status.code() {
         Some(code) => {
             if code != 0 {
-                eprintln!(
+                exit_with_error!(
                     "\n{}Cleaning process exited with non-zero exit code: {}{}",
                     Fg(color::Red),
                     code,
                     Fg(color::Reset)
                 );
-                std::process::exit(1)
             }
         }
         None => {
-            eprintln!("Cleaning process stopped unexpectedly");
-            std::process::exit(1)
+            exit_with_error!("Cleaning process stopped unexpectedly");
         }
     };
 }

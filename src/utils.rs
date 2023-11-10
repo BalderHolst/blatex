@@ -1,8 +1,18 @@
 use std::{
     fs,
     path::{Path, PathBuf},
-    process::{exit, Command},
+    process::Command,
 };
+
+#[macro_export]
+macro_rules! exit_with_error {
+    ($($x:expr),+) => {{
+        println!($($x),+);
+        std::process::exit(1)
+    }}
+}
+
+pub(crate) use exit_with_error;
 
 pub fn replace_text(s: &str, pattern: &str, value: &str) -> String {
     let (first, second) = s.split_once(pattern).expect("pattern not found.");
@@ -17,16 +27,15 @@ pub fn clone_repo(tmp_dir: &Path, url: &str, branch: Option<&String>) -> PathBuf
     // Clear the directory: Delete it if it exists and recreate it
     if tmp_dir.exists() {
         if let Err(e) = fs::remove_dir_all(&tmp_dir) {
-            eprintln!(
+            exit_with_error!(
                 "Could not remove temporary directory '{}': {}",
                 tmp_dir.display(),
                 e
             );
-            exit(1)
         }
     }
     if let Err(e) = fs::create_dir(&tmp_dir) {
-        eprintln!(
+        exit_with_error!(
             "Could not create temporary directory '{}': {}",
             tmp_dir.display(),
             e
@@ -35,7 +44,7 @@ pub fn clone_repo(tmp_dir: &Path, url: &str, branch: Option<&String>) -> PathBuf
 
     // Clone the repo inside the temporary directory
     let status = {
-        match branch {
+        match match branch {
             Some(b) => Command::new("git")
                 .arg("-C")
                 .arg(&tmp_dir)
@@ -43,30 +52,24 @@ pub fn clone_repo(tmp_dir: &Path, url: &str, branch: Option<&String>) -> PathBuf
                 .arg("--branch")
                 .arg(b)
                 .arg(url)
-                .status()
-                .unwrap(),
+                .status(),
             None => Command::new("git")
                 .arg("-C")
                 .arg(&tmp_dir)
                 .arg("clone")
                 .arg(url)
-                .status()
-                .unwrap(),
+                .status(),
+        } {
+            Ok(s) => s,
+            Err(e) => exit_with_error!("Error running git command: {}", e),
         }
     };
 
     // Handle git failing
     match status.code() {
-        Some(c) => {
-            if c != 0 {
-                eprintln!("Git failed to clone repo. Exit code was {}.", c);
-                exit(1);
-            }
-        }
-        None => {
-            eprintln!("Git process stopped unexpectedly");
-            exit(1);
-        }
+        Some(c) if c != 0 => exit_with_error!("Git failed to clone repo. Exit code was {}.", c),
+        None => exit_with_error!("Git process stopped unexpectedly"),
+        Some(_) => {} // Everything worked!
     }
 
     // The repo root is the only entry in the temporary directory
