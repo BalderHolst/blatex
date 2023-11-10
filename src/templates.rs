@@ -66,7 +66,7 @@ where
     P: AsRef<std::path::Path>,
 {
     let mut templates = Vec::new();
-    for file in fs::read_dir(&templates_dir).unwrap() {
+    for file in utils::read_dir(templates_dir.as_ref()) {
         let path = file.unwrap().path();
         if path.is_file() {
             templates.push(templates_dir.as_ref().join(path.file_name().unwrap()));

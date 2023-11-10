@@ -1,5 +1,5 @@
 use std::{
-    fs,
+    fs::{self, ReadDir},
     path::{Path, PathBuf},
     process::Command,
 };
@@ -73,14 +73,16 @@ pub fn clone_repo(tmp_dir: &Path, url: &str, branch: Option<&String>) -> PathBuf
     }
 
     // The repo root is the only entry in the temporary directory
-    let cloned_repo_root = fs::read_dir(&tmp_dir)
-        .unwrap()
-        .next()
-        .unwrap()
-        .unwrap()
-        .path();
+    let cloned_repo_root = read_dir(&tmp_dir).next().unwrap().unwrap().path();
 
     debug_assert!(cloned_repo_root.is_dir());
 
     cloned_repo_root
+}
+
+pub fn read_dir(dir: &Path) -> ReadDir {
+    match fs::read_dir(dir) {
+        Ok(d) => d,
+        Err(e) => exit_with_error!("Could not read directory '{}': {}", dir.display(), e),
+    }
 }

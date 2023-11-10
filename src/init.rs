@@ -32,9 +32,9 @@ fn clone_remote_template(tmp_dir: &Path, name: &String, remote: &RemoteTemplate)
     }
 }
 
-fn copy_directory(src: &PathBuf, dest: &PathBuf) {
+fn copy_directory(src: &Path, dest: &PathBuf) {
     fs::create_dir(dest).unwrap();
-    for file in fs::read_dir(src).unwrap() {
+    for file in utils::read_dir(src) {
         let file = file.unwrap().path();
         let file_name = file.file_name().unwrap();
         if file.is_file() {
@@ -52,7 +52,7 @@ pub fn init(cwd: PathBuf, mut config: Config, args: InitArgs) {
         exit(0);
     }
 
-    let c = fs::read_dir(&config.root).unwrap().count();
+    let c = utils::read_dir(&config.root).count();
     if c == 0 {
         let templates_dir = &config.templates_dir;
         let templates = templates::get_templates(templates_dir.as_path(), &config.remote_templates);
@@ -100,7 +100,7 @@ pub fn init(cwd: PathBuf, mut config: Config, args: InitArgs) {
         // If template path is a directory (can happen when using remote templates), simply copy its
         // contents.
         else {
-            for file in fs::read_dir(template_path).unwrap() {
+            for file in utils::read_dir(&template_path) {
                 let file = file.unwrap().path();
                 let file_name = file.file_name().unwrap().to_str().unwrap();
                 let dest = cwd.join(file_name);
