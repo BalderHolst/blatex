@@ -245,18 +245,18 @@ mod tests {
         opts.config.remote_templates.insert(
             "test-template".to_string(),
             RemoteTemplate {
-                url: "https://github.com/cainmagi/Latex-Templates".to_string(),
-                path: None,
-                branch: Some("elegant-report".to_string()),
+                url: "https://github.com/BalderHolst/blatex".to_string(),
+                path: Some(PathBuf::from("tests")),
+                branch: Some("main".to_string()),
                 config: {
                     let mut config = opts.config.clone();
-                    config.main_file = PathBuf::from("gReport.tex");
+                    config.main_file = PathBuf::from("main1.tex");
                     config
                 },
             },
         );
 
         run(opts.clone());
-        assert!(opts.config.root.join("gReport.pdf").exists())
+        assert!(opts.config.root.join("main1.pdf").exists())
     }
 }

@@ -4,7 +4,7 @@ unstable_pkgs = import (fetchTarball "https://nixos.org/channels/nixos-unstable/
 in
 pkgs.mkShell {
   packages = [
-    pkgs.texlive.combined.scheme-full
+    pkgs.texlive.combined.scheme-medium
     unstable_pkgs.rustc
     unstable_pkgs.cargo
   ];
