@@ -1,5 +1,6 @@
 use std::{
-    fs::{self, ReadDir},
+    fs::{self, DirEntry, ReadDir},
+    io,
     path::{Path, PathBuf},
     process::Command,
 };
@@ -13,6 +14,7 @@ macro_rules! exit_with_error {
 }
 
 pub(crate) use exit_with_error;
+use fuzzy_finder::item::Item;
 
 use crate::utils;
 
@@ -96,7 +98,11 @@ pub fn create_dir(dir: &Path) {
 
 pub fn create_dir_all(dir: &Path) {
     if let Err(e) = fs::create_dir_all(dir) {
-        exit_with_error!("Could not create directory '{}': {}", dir.display(), e);
+        exit_with_error!(
+            "Could not create directory and its parrents '{}': {}",
+            dir.display(),
+            e
+        );
     }
 }
 
@@ -106,5 +112,36 @@ where
 {
     if let Err(e) = fs::write(file, contents) {
         exit_with_error!("Could not write to file '{}': {}", file.display(), e)
+    }
+}
+
+pub fn copy(from: &Path, to: &Path) {
+    if let Err(e) = fs::copy(from, to) {
+        exit_with_error!(
+            "Could not copy '{}' to '{}': {}",
+            from.display(),
+            to.display(),
+            e
+        )
+    }
+}
+
+pub fn handle_file_iter(res: io::Result<DirEntry>) -> DirEntry {
+    match res {
+        Ok(d) => d,
+        Err(e) => exit_with_error!(
+            "Some sort of intermittent IO error happened during iteration: {}",
+            e
+        ),
+    }
+}
+
+pub fn start_fuzzy_finder<T>(items: Vec<Item<T>>, n: i8) -> Option<T>
+where
+    T: Clone,
+{
+    match fuzzy_finder::FuzzyFinder::find(items, n) {
+        Ok(res) => res,
+        Err(e) => exit_with_error!("Fuzzy finder error: {}", e),
     }
 }

@@ -1,12 +1,13 @@
 use std::{
+    ffi::OsStr,
     fs,
-    io::Cursor,
     path::{Path, PathBuf},
     process::exit,
 };
 
 use fuzzy_finder::item::Item;
 use termion::color;
+use zip_extensions::zip_extract;
 
 use crate::{
     config::{self, LOCAL_CONFIG_FILE},
@@ -35,10 +36,10 @@ fn clone_remote_template(tmp_dir: &Path, name: &String, remote: &RemoteTemplate)
 fn copy_directory(src: &Path, dest: &Path) {
     utils::create_dir(dest);
     for file in utils::read_dir(src) {
-        let file = file.unwrap().path();
-        let file_name = file.file_name().unwrap();
+        let file = utils::handle_file_iter(file).path();
+        let file_name = file.file_name().unwrap_or(OsStr::new("no-file-name"));
         if file.is_file() {
-            fs::copy(&file, dest.join(file_name)).unwrap();
+            utils::copy(&file, dest.join(file_name).as_path());
         } else if file.is_dir() {
             copy_directory(&src.join(file_name), &dest.join(file_name))
         }
@@ -81,7 +82,7 @@ pub fn init(cwd: PathBuf, mut config: Config, args: InitArgs) {
                 };
 
                 // Run the fuzzy finder
-                match fuzzy_finder::FuzzyFinder::find(items, nr_of_items as i8).unwrap() {
+                match utils::start_fuzzy_finder(items, nr_of_items as i8) {
                     Some(Template::Local(p)) => config.templates_dir.join(p),
                     Some(Template::Remote { name, remote }) => {
                         config = remote.config.clone();
@@ -94,20 +95,26 @@ pub fn init(cwd: PathBuf, mut config: Config, args: InitArgs) {
 
         // If the template is an archive, extract it to the current working directory
         if template_path.is_file() {
-            let archive_bytes = fs::read(template_path).unwrap();
-            zip_extract::extract(Cursor::new(archive_bytes), &cwd, true).unwrap();
+            if let Err(e) = zip_extract(&template_path, &cwd) {
+                exit_with_error!(
+                    "Could not extract zip archive '{}' to '{}': {}",
+                    template_path.display(),
+                    cwd.display(),
+                    e
+                )
+            }
         }
         // If template path is a directory (can happen when using remote templates), simply copy its
         // contents.
         else {
             for file in utils::read_dir(&template_path) {
-                let file = file.unwrap().path();
-                let file_name = file.file_name().unwrap().to_str().unwrap();
+                let file = utils::handle_file_iter(file).path();
+                let file_name = file.file_name().unwrap_or(OsStr::new("no-file-name"));
                 let dest = cwd.join(file_name);
                 if file.is_dir() {
                     copy_directory(&file, &dest)
                 } else {
-                    fs::copy(&file, dest).unwrap();
+                    utils::copy(&file, &dest);
                 }
             }
         }
@@ -122,7 +129,7 @@ pub fn init(cwd: PathBuf, mut config: Config, args: InitArgs) {
             if let Ok(dir) = fs::read_dir(&config.root) {
                 let items: Vec<fuzzy_finder::item::Item<PathBuf>> = dir
                     .filter_map(|file| {
-                        let file = file.unwrap();
+                        let file = utils::handle_file_iter(file);
                         if file.path().is_file() {
                             let file_name = file.file_name().to_str().map(|s| s.to_string());
                             file_name
