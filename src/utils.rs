@@ -106,6 +106,16 @@ pub fn create_dir_all(dir: &Path) {
     }
 }
 
+pub fn remove_dir_all(dir: &Path) {
+    if let Err(e) = fs::remove_dir_all(dir) {
+        exit_with_error!(
+            "Could not remove directory with its children '{}': {}",
+            dir.display(),
+            e
+        );
+    }
+}
+
 pub fn write<C>(file: &Path, contents: C)
 where
     C: AsRef<[u8]>,
@@ -126,6 +136,23 @@ pub fn copy(from: &Path, to: &Path) {
     }
 }
 
+pub fn symlink(from: &Path, to: &Path) {
+    if let Err(e) = std::os::unix::fs::symlink(from, to) {
+        exit_with_error!(
+            "Could not create symling from '{}' to '{}': {}",
+            from.display(),
+            to.display(),
+            e
+        );
+    };
+}
+
+pub fn remove_file(path: &Path) {
+    if let Err(e) = fs::remove_file(path) {
+        exit_with_error!("Could not remove file '{}': {}", path.display(), e)
+    }
+}
+
 pub fn handle_file_iter(res: io::Result<DirEntry>) -> DirEntry {
     match res {
         Ok(d) => d,
@@ -133,6 +160,13 @@ pub fn handle_file_iter(res: io::Result<DirEntry>) -> DirEntry {
             "Some sort of intermittent IO error happened during iteration: {}",
             e
         ),
+    }
+}
+
+pub fn parrent(path: &Path) -> &Path {
+    match path.parent() {
+        Some(p) => p,
+        None => exit_with_error!("Could not get parrent of '{}'", path.display()),
     }
 }
 

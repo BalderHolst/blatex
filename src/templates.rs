@@ -1,7 +1,7 @@
 use std::{
     collections::HashMap,
     ffi::OsStr,
-    fs, io, os,
+    fs, io,
     path::{Path, PathBuf},
 };
 
@@ -28,7 +28,7 @@ pub enum Template {
 impl ToString for Template {
     fn to_string(&self) -> String {
         match self {
-            Template::Local(p) => p.to_str().unwrap().to_string(),
+            Template::Local(p) => p.to_str().unwrap_or("invalid-file-name").to_string(),
             Template::Remote { name, remote: _ } => format!(
                 "{}{} (remote){}",
                 color::Fg(color::Magenta),
@@ -49,7 +49,13 @@ where
     // Get the local templates
     let mut templates: Vec<Template> = get_local_templates(&templates_dir)
         .iter()
-        .map(|t| Template::Local(t.strip_prefix(&templates_dir).unwrap().to_path_buf()))
+        .map(|t| {
+            Template::Local(
+                t.strip_prefix(&templates_dir)
+                    .expect("local templates should always be in the template directory")
+                    .to_path_buf(),
+            )
+        })
         .collect();
 
     // Insert the remote templates
@@ -67,9 +73,13 @@ where
 {
     let mut templates = Vec::new();
     for file in utils::read_dir(templates_dir.as_ref()) {
-        let path = file.unwrap().path();
+        let path = utils::handle_file_iter(file).path();
         if path.is_file() {
-            templates.push(templates_dir.as_ref().join(path.file_name().unwrap()));
+            templates.push(
+                templates_dir
+                    .as_ref()
+                    .join(path.file_name().expect("This should always be a file.")),
+            );
         } else if path.is_dir() {
             templates.extend(get_local_templates(path))
         }
@@ -136,7 +146,10 @@ fn add_path(
     force: bool,
     rename: Option<&String>,
 ) {
-    let path_filename = path.file_name().unwrap();
+    let path_filename = match path.file_name() {
+        Some(n) => n,
+        None => exit_with_error!("Cannot find file name for path '{}'.", path.display()),
+    };
 
     if symlink && !cfg!(unix) {
         exit_with_error!("You can only use symlinks om UNIX systems.");
@@ -164,9 +177,9 @@ fn add_path(
         }
         {
             if dest.is_dir() {
-                fs::remove_dir_all(dest.as_path()).unwrap();
+                utils::remove_dir_all(dest.as_path());
             } else {
-                fs::remove_file(dest.as_path()).unwrap();
+                utils::remove_file(dest.as_path());
             }
         }
     }
@@ -175,7 +188,8 @@ fn add_path(
 
     // This works for both paths and directories
     if symlink {
-        os::unix::fs::symlink(cwd.join(path), dest).unwrap();
+        let src = cwd.join(path);
+        utils::symlink(&src, &dest);
         return;
     }
 
@@ -185,20 +199,27 @@ fn add_path(
         }
 
         // Make sure that parent of added file exists
-        let parrent = dest.parent().unwrap();
+        let parrent = utils::parrent(&dest);
         utils::create_dir_all(parrent);
 
         if symlink {
-            os::unix::fs::symlink(cwd.join(path), dest).unwrap();
+            let src = cwd.join(path);
+            utils::symlink(&src, &dest)
         } else {
-            fs::copy(path.as_path(), dest).unwrap();
+            utils::copy(&path, &dest);
         }
     } else if path.is_dir() {
         if symlink {
-            os::unix::fs::symlink(cwd.join(path), dest).unwrap();
-        } else {
-            copy_dir_all(path.as_path(), dest).unwrap();
-        }
+            let src = cwd.join(path);
+            utils::symlink(&src, &dest);
+        } else if let Err(e) = copy_dir_all(&path, &dest) {
+            exit_with_error!(
+                "Could not copy directory '{}' to '{}': {}",
+                path.display(),
+                dest.display(),
+                e
+            )
+        };
     } else {
         exit_with_error!("File `{}` is neither file or directory.", path.display());
     }
@@ -214,12 +235,15 @@ fn _list_templates_recursive(dir: PathBuf, level: usize) {
     match fs::read_dir(dir) {
         Ok(read_dir) => {
             for file in read_dir {
-                let path = file.unwrap().path();
+                let path = utils::handle_file_iter(file).path();
                 if path.is_file() {
                     println!(
                         "{}{}",
                         "  ".repeat(level),
-                        path.file_name().unwrap().to_str().unwrap(),
+                        path.file_name()
+                            .expect("files shoud not be able to cause errors")
+                            .to_str()
+                            .unwrap_or("invalid-file-name"),
                     );
                 } else if path.is_dir() {
                     println!(
@@ -227,7 +251,10 @@ fn _list_templates_recursive(dir: PathBuf, level: usize) {
                         "  ".repeat(level),
                         style::Bold,
                         Fg(color::Blue),
-                        path.file_name().unwrap().to_str().unwrap(),
+                        path.file_name()
+                            .expect("files shoud not be able to cause errors")
+                            .to_str()
+                            .unwrap_or("invalid-file-name"),
                         Fg(color::Reset),
                         style::Reset,
                     );
@@ -261,14 +288,29 @@ pub fn add_repo(cwd: PathBuf, config: Config, args: TemplateAddRepoArgs) {
         None => cloned_repo_root,
     };
 
+    let template_file_name = match template_path.file_name() {
+        Some(n) => n,
+        None => exit_with_error!(
+            "Could not determine template file name from path '{}'.",
+            template_path.display()
+        ),
+    };
+
     // The zip archive will have the same name as the repo, but with the .zip extension
     let archive_path = config
         .temp_dir
-        .join(template_path.file_name().unwrap())
+        .join(template_file_name)
         .with_extension("zip");
 
     // Create the zip archive
-    zip_extensions::write::zip_create_from_directory(&archive_path, &template_path).unwrap();
+    if let Err(e) = zip_extensions::write::zip_create_from_directory(&archive_path, &template_path)
+    {
+        exit_with_error!(
+            "Could not create zip archive from directory '{}': {}",
+            archive_path.display(),
+            e
+        );
+    }
 
     // Add the template as a normal local template
     add_path(&cwd, &config, archive_path, false, args.force, None)
