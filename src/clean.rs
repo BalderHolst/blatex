@@ -34,11 +34,10 @@ pub fn clean(config: Config, args: CleanArgs) {
     let status = if cfg!(target_os = "windows") {
         exit_with_error!("Cleaning on windows is currently not supported.");
     } else {
-        std::process::Command::new("sh")
-            .arg("-c")
-            .arg(cmd)
-            .status()
-            .unwrap()
+        match std::process::Command::new("sh").arg("-c").arg(cmd).status() {
+            Ok(s) => s,
+            Err(e) => exit_with_error!("Could not run clean command: {}", e),
+        }
     };
 
     match status.code() {

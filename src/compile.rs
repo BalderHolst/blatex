@@ -36,11 +36,10 @@ pub fn compile_file(cwd: PathBuf, config: Config, main_file: PathBuf) {
     let status = if cfg!(target_os = "windows") {
         exit_with_error!("Compilation on windows is currently not supported.");
     } else {
-        std::process::Command::new("sh")
-            .arg("-c")
-            .arg(cmd)
-            .status()
-            .unwrap()
+        match std::process::Command::new("sh").arg("-c").arg(cmd).status() {
+            Ok(s) => s,
+            Err(e) => exit_with_error!("Could not run compilation command: {}", e),
+        }
     };
 
     match status.code() {

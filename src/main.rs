@@ -69,7 +69,7 @@ mod tests {
     impl TestContext {
         fn new(config: &Config) -> Self {
             if PathBuf::from(TEST_DIR).exists() {
-                fs::remove_dir_all(TEST_DIR).unwrap();
+                utils::remove_dir_all(Path::new(TEST_DIR));
             }
 
             utils::create_dir(Path::new(TEST_DIR));
