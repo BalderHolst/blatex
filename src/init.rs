@@ -32,8 +32,8 @@ fn clone_remote_template(tmp_dir: &Path, name: &String, remote: &RemoteTemplate)
     }
 }
 
-fn copy_directory(src: &Path, dest: &PathBuf) {
-    fs::create_dir(dest).unwrap();
+fn copy_directory(src: &Path, dest: &Path) {
+    utils::create_dir(dest);
     for file in utils::read_dir(src) {
         let file = file.unwrap().path();
         let file_name = file.file_name().unwrap();

@@ -50,9 +50,12 @@ mod tests {
 
     use crate::{
         opts::{Config, Opts},
-        run,
+        run, utils,
     };
-    use std::{fs, path::PathBuf};
+    use std::{
+        fs,
+        path::{Path, PathBuf},
+    };
 
     const TEST_DIR: &str = "./__tmp_test_dir__/";
 
@@ -69,11 +72,11 @@ mod tests {
                 fs::remove_dir_all(TEST_DIR).unwrap();
             }
 
-            fs::create_dir(TEST_DIR).unwrap();
-            fs::create_dir(TEST_DIR.to_string() + CWD_DIR).unwrap();
-            fs::create_dir(&config.data_dir).unwrap();
-            fs::create_dir(&config.templates_dir).unwrap();
-            fs::create_dir(&config.temp_dir).unwrap();
+            utils::create_dir(Path::new(TEST_DIR));
+            utils::create_dir(Path::new(&(TEST_DIR.to_string() + CWD_DIR)));
+            utils::create_dir(&config.data_dir);
+            utils::create_dir(&config.templates_dir);
+            utils::create_dir(&config.temp_dir);
             Self
         }
     }

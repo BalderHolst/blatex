@@ -21,7 +21,10 @@ pub fn create(cwd: &Path, global: bool, args: &ConfigCreateArgs, config: &Config
     let toml = format!(
         "{}{}",
         description,
-        toml::to_string_pretty(&config).unwrap()
+        toml::to_string_pretty(&config).unwrap_or({
+            eprintln!("WARNING: Could not convert configuration to toml.");
+            "".to_string()
+        })
     );
 
     let dest = if global {
@@ -50,5 +53,8 @@ pub fn create(cwd: &Path, global: bool, args: &ConfigCreateArgs, config: &Config
 
 pub fn show(config: Config, global: bool) {
     let config = if global { Config::new_global() } else { config };
-    println!("{}", toml::to_string_pretty(&config).unwrap());
+    println!(
+        "{}",
+        toml::to_string_pretty(&config).unwrap_or("".to_string())
+    );
 }

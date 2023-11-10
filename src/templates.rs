@@ -171,7 +171,7 @@ fn add_path(
         }
     }
 
-    fs::create_dir_all(templates_dir.as_path()).unwrap();
+    utils::create_dir_all(templates_dir.as_path());
 
     // This works for both paths and directories
     if symlink {
@@ -186,7 +186,7 @@ fn add_path(
 
         // Make sure that parent of added file exists
         let parrent = dest.parent().unwrap();
-        fs::create_dir_all(parrent).unwrap();
+        utils::create_dir_all(parrent);
 
         if symlink {
             os::unix::fs::symlink(cwd.join(path), dest).unwrap();

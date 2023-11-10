@@ -14,6 +14,8 @@ macro_rules! exit_with_error {
 
 pub(crate) use exit_with_error;
 
+use crate::utils;
+
 pub fn replace_text(s: &str, pattern: &str, value: &str) -> String {
     let (first, second) = s.split_once(pattern).expect("pattern not found.");
     first.to_string() + value + second
@@ -34,13 +36,8 @@ pub fn clone_repo(tmp_dir: &Path, url: &str, branch: Option<&String>) -> PathBuf
             );
         }
     }
-    if let Err(e) = fs::create_dir(&tmp_dir) {
-        exit_with_error!(
-            "Could not create temporary directory '{}': {}",
-            tmp_dir.display(),
-            e
-        )
-    }
+
+    utils::create_dir(&tmp_dir);
 
     // Clone the repo inside the temporary directory
     let status = {
@@ -73,7 +70,11 @@ pub fn clone_repo(tmp_dir: &Path, url: &str, branch: Option<&String>) -> PathBuf
     }
 
     // The repo root is the only entry in the temporary directory
-    let cloned_repo_root = read_dir(&tmp_dir).next().unwrap().unwrap().path();
+    let cloned_repo_root = match read_dir(&tmp_dir).next() {
+        Some(Ok(f)) => f.path(),
+        Some(Err(e)) => exit_with_error!("Could not open dir '{}': {}", tmp_dir.display(), e),
+        None => exit_with_error!("Could not find cloned repository directory."),
+    };
 
     debug_assert!(cloned_repo_root.is_dir());
 
@@ -84,5 +85,17 @@ pub fn read_dir(dir: &Path) -> ReadDir {
     match fs::read_dir(dir) {
         Ok(d) => d,
         Err(e) => exit_with_error!("Could not read directory '{}': {}", dir.display(), e),
+    }
+}
+
+pub fn create_dir(dir: &Path) {
+    if let Err(e) = fs::create_dir(dir) {
+        exit_with_error!("Could not create directory '{}': {}", dir.display(), e);
+    }
+}
+
+pub fn create_dir_all(dir: &Path) {
+    if let Err(e) = fs::create_dir_all(dir) {
+        exit_with_error!("Could not create directory '{}': {}", dir.display(), e);
     }
 }
