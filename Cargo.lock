@@ -105,7 +105,6 @@ dependencies = [
  "toml",
  "zip",
  "zip-extensions",
- "zip-extract",
 ]
 
 [[package]]
@@ -1100,17 +1099,6 @@ version = "0.6.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cecf62554c4ff96bce01a7ef123d160c3ffe9180638820f8b4d545c65b221b8c"
 dependencies = [
- "zip",
-]
-
-[[package]]
-name = "zip-extract"
-version = "0.1.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bb654964c003959ed64cbd0d7b329bcdcbd9690facd50c8617748d3622543972"
-dependencies = [
- "log",
- "thiserror",
  "zip",
 ]
 
