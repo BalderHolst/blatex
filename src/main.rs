@@ -47,10 +47,8 @@ fn run(opts: Opts) {
 #[cfg(test)]
 mod tests {
     use serial_test::serial;
-    use toml::{self, map::Map};
 
     use crate::{
-        config,
         opts::{Config, Opts, RemoteTemplate},
         run, utils,
     };
