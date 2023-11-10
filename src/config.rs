@@ -1,8 +1,9 @@
-use std::{fs, path::Path};
+use std::path::Path;
 
 use crate::{
     exit_with_error,
     opts::{Config, ConfigCreateArgs},
+    utils,
 };
 
 pub const LOCAL_CONFIG_FILE: &str = ".blatex.toml";
@@ -42,9 +43,13 @@ pub fn create(cwd: &Path, global: bool, args: &ConfigCreateArgs, config: &Config
     }
 
     // Create directory if it does not exist
-    fs::create_dir_all(dest.parent().unwrap()).unwrap();
+    let config_dir = match dest.parent() {
+        Some(d) => d,
+        None => exit_with_error!("Cannot find parrent directory for '{}'.", dest.display()),
+    };
+    utils::create_dir_all(config_dir);
 
-    fs::write(&dest, toml).unwrap();
+    utils::write(&dest, toml);
     println!(
         "Wrote {} config `{}`",
         if global { "global" } else { "local" },
@@ -54,8 +59,9 @@ pub fn create(cwd: &Path, global: bool, args: &ConfigCreateArgs, config: &Config
 
 pub fn show(config: Config, global: bool) {
     let config = if global { Config::new_global() } else { config };
-    println!(
-        "{}",
-        toml::to_string_pretty(&config).unwrap_or("".to_string())
-    );
+    let config_string = match toml::to_string_pretty(&config) {
+        Ok(s) => s,
+        Err(e) => exit_with_error!("Could not convert configuration to string: {}", e),
+    };
+    println!("{}", config_string);
 }

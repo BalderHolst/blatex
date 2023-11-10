@@ -99,3 +99,12 @@ pub fn create_dir_all(dir: &Path) {
         exit_with_error!("Could not create directory '{}': {}", dir.display(), e);
     }
 }
+
+pub fn write<C>(file: &Path, contents: C)
+where
+    C: AsRef<[u8]>,
+{
+    if let Err(e) = fs::write(file, contents) {
+        exit_with_error!("Could not write to file '{}': {}", file.display(), e)
+    }
+}
