@@ -139,6 +139,10 @@ pub fn init(cwd: PathBuf, mut config: Config, args: InitArgs) {
                         }
                     })
                     .collect();
+                println!(
+                    "Could not find main file '{}' please choose one.",
+                    config.main_file.display()
+                );
                 let l = items.len();
                 match fuzzy_finder::FuzzyFinder::find(items, i8::min(l as i8, 8)) {
                     Ok(Some(p)) => config.main_file = p,

@@ -47,9 +47,11 @@ fn run(opts: Opts) {
 #[cfg(test)]
 mod tests {
     use serial_test::serial;
+    use toml::{self, map::Map};
 
     use crate::{
-        opts::{Config, Opts},
+        config,
+        opts::{Config, Opts, RemoteTemplate},
         run, utils,
     };
     use std::{
@@ -60,6 +62,7 @@ mod tests {
     const TEST_DIR: &str = "./__tmp_test_dir__/";
 
     const DATA_DIR: &str = "data_dir/";
+    const CONFIG_DIR: &str = "config_dir/";
     const TEMPLATES_DIR: &str = "templates_dir/";
     const TEMP_DIR: &str = "temp_dir/";
     const CWD_DIR: &str = "cwd/";
@@ -88,18 +91,14 @@ mod tests {
     fn setup(args: Vec<&str>) -> (TestContext, Opts) {
         let cwd = PathBuf::from(TEST_DIR).join(CWD_DIR);
 
-        // main_file: todo!(),
-        // compile_cmd: todo!(),
-        // clean_cmd: todo!(),
-        // data_dir: todo!(),
-        // templates_dir: todo!(),
-        // config_file: todo!(),
-        // temp_dir: todo!(),
         let mut config = Config::default();
         config.root = cwd.clone();
         config.data_dir = PathBuf::from(TEST_DIR.to_string() + DATA_DIR);
+        config.config_file = PathBuf::from(TEST_DIR.to_string() + CONFIG_DIR + "config.toml");
         config.templates_dir = PathBuf::from(TEST_DIR.to_string() + TEMPLATES_DIR);
         config.temp_dir = PathBuf::from(TEST_DIR.to_string() + TEMP_DIR);
+
+        // Silence latex compilation
         config.compile_cmd = config.compile_cmd + " > /dev/null";
         config.clean_cmd = config.clean_cmd + " > /dev/null";
 
@@ -232,5 +231,34 @@ mod tests {
             .templates_dir
             .join("dir/within/dir/awesome_template.zip")
             .is_file());
+    }
+
+    #[test]
+    #[serial]
+    fn test_remote_template_config() {
+        #[allow(unused_variables)]
+        // let (ctx, opts) = setup!("init", "-t", "test-template");
+        let (ctx, mut opts) = setup!("init", "-t", "test-template");
+
+        let config_dir = opts.config.config_file.parent().unwrap();
+        dbg!(&config_dir);
+        fs::create_dir_all(config_dir).unwrap();
+
+        opts.config.remote_templates.insert(
+            "test-template".to_string(),
+            RemoteTemplate {
+                url: "https://github.com/cainmagi/Latex-Templates".to_string(),
+                path: None,
+                branch: Some("elegant-report".to_string()),
+                config: {
+                    let mut config = opts.config.clone();
+                    config.main_file = PathBuf::from("gReport.tex");
+                    config
+                },
+            },
+        );
+
+        run(opts.clone());
+        assert!(opts.config.root.join("gReport.pdf").exists())
     }
 }
