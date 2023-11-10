@@ -19,10 +19,10 @@ fn main() {
 fn run(opts: Opts) {
     match opts.args.command {
         Command::Init(args) => init::init(opts.cwd, opts.config, args),
-        Command::Compile(args) => compile::compile(opts.cwd, opts.config, args),
+        Command::Compile(args) => compile::compile(opts.config, args),
         Command::Clean(args) => clean::clean(opts.config, args),
         Command::Log(args) => log::print_log(
-            opts.cwd,
+            opts.config.root,
             &match &args.log_file {
                 Some(s) => PathBuf::from(s),
                 None => opts.config.main_file,
@@ -100,6 +100,8 @@ mod tests {
         config.data_dir = PathBuf::from(TEST_DIR.to_string() + DATA_DIR);
         config.templates_dir = PathBuf::from(TEST_DIR.to_string() + TEMPLATES_DIR);
         config.temp_dir = PathBuf::from(TEST_DIR.to_string() + TEMP_DIR);
+        config.compile_cmd = config.compile_cmd + " > /dev/null";
+        config.clean_cmd = config.clean_cmd + " > /dev/null";
 
         (
             TestContext::new(&config),
@@ -128,6 +130,34 @@ mod tests {
         assert!(!clean_opts.cwd.join("main.log").exists());
         assert!(!clean_opts.cwd.join("main.out").exists());
         assert!(clean_opts.cwd.join("main.pdf").exists());
+    }
+
+    #[test]
+    #[serial]
+    fn test_compile_from_subfolder() {
+        print!("test_compile_and_clean");
+        #[allow(unused_variables)]
+        let (ctx, init_opts) = setup!("init");
+        fs::copy("./tests/main1.tex", init_opts.cwd.join("main.tex")).unwrap();
+
+        // Create `.blatex.toml`
+        run(init_opts.clone());
+
+        let mut compile_opts = Opts::create_mock(vec!["compile"], init_opts.config, init_opts.cwd);
+
+        // Create sub directory
+        fs::create_dir(compile_opts.cwd.join("subdir")).unwrap();
+
+        // Go into sub directory
+        compile_opts.cwd = compile_opts.cwd.join("subdir");
+
+        dbg!(&compile_opts.cwd, &compile_opts.config.root);
+
+        run(compile_opts.clone());
+        assert!(!compile_opts.cwd.join("main.log").exists());
+        assert!(!compile_opts.cwd.join("main.pdf").exists());
+        assert!(compile_opts.config.root.join("main.log").exists());
+        assert!(compile_opts.config.root.join("main.pdf").exists());
     }
 
     #[test]

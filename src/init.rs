@@ -152,5 +152,5 @@ pub fn init(cwd: PathBuf, mut config: Config, args: InitArgs) {
 
     // Compile document with the new configuration
     let main_file = config.main_file.clone();
-    crate::compile::compile_file(cwd, config, main_file);
+    crate::compile::compile_file(config, main_file);
 }

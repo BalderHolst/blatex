@@ -2,8 +2,8 @@ use std::path::PathBuf;
 
 use crate::exit_with_error;
 
-pub fn print_log(cwd: PathBuf, main_file: &PathBuf) {
-    let log_file = cwd.join(main_file).with_extension("log");
+pub fn print_log(root: PathBuf, main_file: &PathBuf) {
+    let log_file = root.join(main_file).with_extension("log");
 
     if !log_file.is_file() {
         exit_with_error!("Cannot find log file `{}`.", log_file.display());

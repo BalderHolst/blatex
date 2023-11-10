@@ -8,15 +8,15 @@ use crate::{
     utils,
 };
 
-pub fn compile(cwd: PathBuf, config: Config, args: CompileArgs) {
+pub fn compile(config: Config, args: CompileArgs) {
     let main_file = match args.main_file {
         Some(f) => PathBuf::from(f),
         None => config.main_file.clone(),
     };
-    compile_file(cwd, config, main_file);
+    compile_file(config, main_file);
 }
 
-pub fn compile_file(cwd: PathBuf, config: Config, main_file: PathBuf) {
+pub fn compile_file(config: Config, main_file: PathBuf) {
     let cmd = utils::replace_text(
         &config.compile_cmd,
         "<main-file>",
@@ -59,5 +59,5 @@ pub fn compile_file(cwd: PathBuf, config: Config, main_file: PathBuf) {
     };
 
     // Parse log file
-    log::print_log(cwd, &main_file);
+    log::print_log(config.root, &main_file);
 }
