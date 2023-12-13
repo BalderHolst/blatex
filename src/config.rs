@@ -9,25 +9,10 @@ use crate::{
 pub const LOCAL_CONFIG_FILE: &str = ".blatex.toml";
 
 pub fn create(cwd: &Path, global: bool, args: &ConfigCreateArgs, config: &Config) {
-    let description = if global {
-        r#"# This file is the template used when creating local configuration files.
-# Options here will always get read, but may be overridden by local
-# config files. If you delete options, they will simply be set to their
-# default value.
-"#
-    } else {
-        "# This is your local configuration for this project.\n# Options here will override global ones.\n"
+    let toml = match global {
+        true => create_global_configuration_string(config),
+        false => create_local_configuration_string(config),
     };
-
-    let config_string = match toml::to_string_pretty(&config) {
-        Ok(s) => s,
-        Err(_) => {
-            eprintln!("WARNING: Could not convert configuration to toml.");
-            "".to_string()
-        }
-    };
-
-    let toml = format!("{}{}", description, config_string);
 
     let dest = if global {
         Config::default().config_file
@@ -55,6 +40,41 @@ pub fn create(cwd: &Path, global: bool, args: &ConfigCreateArgs, config: &Config
         if global { "global" } else { "local" },
         dest.display()
     );
+}
+
+fn create_local_configuration_string(config: &Config) -> String {
+    let desc = "# This is your local configuration for this document.\n# Options here will override global ones.\n";
+
+    let config_string = format!(
+        r#"
+main_file = "{main_file}"
+compile_cmd = "{compile_cmd}"
+clean_cmd = "{clean_cmd}"
+                                "#,
+        main_file = config.main_file.display(),
+        compile_cmd = config.compile_cmd,
+        clean_cmd = config.clean_cmd
+    );
+
+    format!("{}{}", desc, config_string)
+}
+
+fn create_global_configuration_string(config: &Config) -> String {
+    let desc = r#"
+# This is your global configuration file. Options here will always get
+# read, but may be overridden by local config files. If you delete
+# options, they will simply be set to their default value.
+"#;
+
+    let config_string = match toml::to_string_pretty(&config) {
+        Ok(s) => s,
+        Err(_) => {
+            eprintln!("WARNING: Could not convert configuration to toml.");
+            "".to_string()
+        }
+    };
+
+    format!("{}{}", desc, config_string)
 }
 
 pub fn show(config: Config, global: bool) {

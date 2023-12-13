@@ -17,7 +17,7 @@ pub fn compile(config: Config, args: CompileArgs) {
 }
 
 pub fn compile_file(config: Config, main_file: PathBuf) {
-    let cmd = utils::replace_path_placeholders(&config.compile_cmd, &main_file);
+    let cmd = utils::replace_path_placeholders(&config.compile_cmd, main_file.as_path());
     let prefix = format!("cd \"{}\"", config.root.display());
 
     let cmd = prefix + " && " + cmd.as_str();

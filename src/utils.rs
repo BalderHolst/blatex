@@ -18,8 +18,8 @@ use fuzzy_finder::item::Item;
 
 use crate::utils;
 
-pub fn replace_path_placeholders(s: &str, main_file: &PathBuf) -> String {
-    let main_file_string = main_file.as_path().to_str().unwrap();
+pub fn replace_path_placeholders(s: &str, main_file: &Path) -> String {
+    let main_file_string = main_file.to_str().unwrap();
     let out = replace_text(s, "<main-file>", main_file_string);
 
     let stem = main_file_string
