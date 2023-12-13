@@ -155,11 +155,11 @@ pub struct Config {
     /// The main entry point for the latex compiler
     pub main_file: PathBuf,
 
-    /// Command for compiling document. <main-file> will be substituted with the `main_file`
+    /// Command for compiling document. \<main-file\> will be substituted with the `main_file`
     /// configuration field.
     pub compile_cmd: String,
 
-    /// Command for cleaning temporary document files. <main-file> will be substituted with the `main_file`
+    /// Command for cleaning temporary document files. \<main-file\> will be substituted with the `main_file`
     /// configuration field.
     pub clean_cmd: String,
 
@@ -205,10 +205,8 @@ impl Default for Config {
             config_file: config_dir,
             temp_dir,
             main_file: PathBuf::from("main.tex"),
-            compile_cmd:
-                "latexmk -pdf -bibtex-cond -shell-escape -interaction=nonstopmode <main-file>"
-                    .to_string(),
-            clean_cmd: "latexmk -c <main-file>".to_string(),
+            compile_cmd: "pdflatex -shell-escape -interaction=nonstopmode <main-file>".to_string(),
+            clean_cmd: "rm <main-stem>.aux <main-stem>.log".to_string(),
             remote_templates: HashMap::new(),
         }
     }

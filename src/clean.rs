@@ -14,12 +14,7 @@ pub fn clean(config: Config, args: CleanArgs) {
         None => config.main_file,
     };
 
-    let cmd = utils::replace_text(
-        &config.clean_cmd,
-        "<main-file>",
-        main_file.display().to_string().as_str(),
-    );
-
+    let cmd = utils::replace_path_placeholders(&config.clean_cmd, &main_file);
     let prefix = format!("cd \"{}\"", config.root.display());
 
     let cmd = prefix + " && " + cmd.as_str();

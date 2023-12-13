@@ -18,9 +18,25 @@ use fuzzy_finder::item::Item;
 
 use crate::utils;
 
-pub fn replace_text(s: &str, pattern: &str, value: &str) -> String {
-    let (first, second) = s.split_once(pattern).expect("pattern not found.");
-    first.to_string() + value + second
+pub fn replace_path_placeholders(s: &str, main_file: &PathBuf) -> String {
+    let main_file_string = main_file.as_path().to_str().unwrap();
+    let out = replace_text(s, "<main-file>", main_file_string);
+
+    let stem = main_file_string
+        .strip_suffix(".tex")
+        .unwrap_or(main_file_string);
+    let out = replace_text(out.as_str(), "<main-stem>", stem);
+
+    out
+}
+
+fn replace_text(s: &str, pattern: &str, value: &str) -> String {
+    let parts = s.split(pattern);
+    parts
+        .clone()
+        .flat_map(|p| [p, value])
+        .take(parts.count() * 2 - 1)
+        .collect::<String>()
 }
 
 /// Clones a repository and returns path to the root of the cloned directory.
