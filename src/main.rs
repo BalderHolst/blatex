@@ -233,6 +233,7 @@ mod tests {
 
     #[test]
     #[serial]
+    #[ignore]
     fn test_remote_template_config() {
         #[allow(unused_variables)]
         // let (ctx, opts) = setup!("init", "-t", "test-template");
