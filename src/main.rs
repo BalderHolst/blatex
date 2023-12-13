@@ -182,6 +182,36 @@ mod tests {
 
     #[test]
     #[serial]
+    #[ignore]
+    fn test_add_repo_zip_and_compile() {
+        print!("test_add_repo_zip_and_compile");
+        #[allow(unused_variables)]
+        let (ctx, opts) = setup!(
+            "templates",
+            "add-repo",
+            "https://github.com/BalderHolst/blatex",
+            "-p",
+            "templates/basic.zip"
+        );
+        let add_opts = opts.clone();
+        let init_opts = Opts::create_mock(
+            vec!["init", "-t", "basic"],
+            add_opts.config.clone(),
+            add_opts.cwd.clone(),
+        );
+        let compile_opts = Opts::create_mock(
+            vec!["compile"],
+            add_opts.config.clone(),
+            add_opts.cwd.clone(),
+        );
+        run(add_opts);
+        run(init_opts);
+        run(compile_opts);
+        assert!(opts.cwd.join("main.pdf").exists())
+    }
+
+    #[test]
+    #[serial]
     fn rename_add_templates() {
         print!("rename_add_templates");
         #[allow(unused_variables)]

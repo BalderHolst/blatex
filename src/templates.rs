@@ -272,13 +272,19 @@ pub fn add_repo(cwd: PathBuf, config: Config, args: TemplateAddRepoArgs) {
     // TODO: support branches
     let cloned_repo_root = utils::clone_repo(&config.temp_dir, args.url.as_str(), None);
 
+    let mut is_zip = false;
+
     // Handle that the user may provide a path within repo as the template
     let template_path = match args.path {
         Some(sub_path) => {
             let p = cloned_repo_root.join(&sub_path);
-            if !p.is_dir() {
+
+            is_zip = p.extension() == Some(OsStr::new("zip"));
+
+            // Check that path is valid
+            if !p.is_dir() && !is_zip {
                 exit_with_error!(
-                    "Path `{}` is not a directory within repository at `{}`.",
+                    "Path `{}` is not a directory, or zip archive, within repository at `{}`.",
                     sub_path,
                     args.url
                 );
@@ -297,19 +303,24 @@ pub fn add_repo(cwd: PathBuf, config: Config, args: TemplateAddRepoArgs) {
     };
 
     // The zip archive will have the same name as the repo, but with the .zip extension
-    let archive_path = config
+    let mut archive_path = config
         .temp_dir
         .join(template_file_name)
         .with_extension("zip");
 
-    // Create the zip archive
-    if let Err(e) = zip_extensions::write::zip_create_from_directory(&archive_path, &template_path)
-    {
-        exit_with_error!(
-            "Could not create zip archive from directory '{}': {}",
-            archive_path.display(),
-            e
-        );
+    if is_zip {
+        archive_path = template_path;
+    } else {
+        // Create the zip archive
+        if let Err(e) =
+            zip_extensions::write::zip_create_from_directory(&archive_path, &template_path)
+        {
+            exit_with_error!(
+                "Could not create zip archive from directory '{}': {}",
+                archive_path.display(),
+                e
+            );
+        }
     }
 
     // Add the template as a normal local template
