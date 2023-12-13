@@ -9,7 +9,12 @@ use crate::{config::LOCAL_CONFIG_FILE, exit_with_error};
 
 const REMOTE_TEMPLATES_OPTION: &str = "remote_templates";
 
+const VERSION: &str = env!("CARGO_PKG_VERSION");
+
 #[derive(Parser, Clone)]
+#[command(name = "blatex")]
+#[command(author = "Balder W. Holst <balderwh@gmail.com>")]
+#[command(version = VERSION)]
 pub struct Args {
     #[command(subcommand)]
     pub command: Command,
