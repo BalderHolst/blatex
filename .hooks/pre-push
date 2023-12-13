@@ -1,5 +1,11 @@
 #!/bin/sh
 
+git diff-files --quiet || {
+    git status -s
+    echo -e "\nYou have uncommited changes."
+    exit 1
+}
+
 cargo fmt --check -q || {
     echo -e "\nPlease format your code."
     exit 1
