@@ -1,7 +1,7 @@
 use std::{
     collections::HashMap,
     ffi::OsStr,
-    fs, io,
+    fs,
     path::{Path, PathBuf},
 };
 
@@ -107,20 +107,6 @@ pub fn search_templates<'a>(name: &String, templates: &'a Vec<Template>) -> Opti
     None
 }
 
-fn copy_dir_all(src: impl AsRef<Path>, dst: impl AsRef<Path>) -> io::Result<()> {
-    fs::create_dir_all(&dst)?;
-    for entry in fs::read_dir(src)? {
-        let entry = entry?;
-        let ty = entry.file_type()?;
-        if ty.is_dir() {
-            copy_dir_all(entry.path(), dst.as_ref().join(entry.file_name()))?;
-        } else {
-            fs::copy(entry.path(), dst.as_ref().join(entry.file_name()))?;
-        }
-    }
-    Ok(())
-}
-
 pub fn add_paths(cwd: PathBuf, config: Config, args: TemplateAddArgs) {
     if args.rename.is_some() && args.paths.len() != 1 {
         exit_with_error!("Cannot rename when adding more than one file or directory.");
@@ -141,7 +127,7 @@ pub fn add_paths(cwd: PathBuf, config: Config, args: TemplateAddArgs) {
 fn add_path(
     cwd: &Path,
     config: &Config,
-    path: PathBuf,
+    mut path: PathBuf,
     symlink: bool,
     force: bool,
     rename: Option<&String>,
@@ -156,16 +142,12 @@ fn add_path(
     }
 
     let templates_dir = &config.templates_dir;
-    let dest = templates_dir.join(match rename {
-        Some(new_name) => {
-            let mut p = PathBuf::from(new_name);
-            if path.is_file() {
-                p.set_extension("zip");
-            }
-            p
-        }
-        None => PathBuf::from(path_filename),
-    });
+    let dest = templates_dir
+        .join(match rename {
+            Some(new_name) => PathBuf::from(new_name),
+            None => PathBuf::from(path_filename),
+        })
+        .with_extension("zip");
 
     if dest.exists() {
         if !force {
@@ -193,35 +175,38 @@ fn add_path(
         return;
     }
 
-    if path.is_file() {
-        if Some(OsStr::new("zip")) != path.extension() {
-            exit_with_error!("Templates should be zip files.");
-        }
-
-        // Make sure that parent of added file exists
-        let parrent = utils::parrent(&dest);
-        utils::create_dir_all(parrent);
-
-        if symlink {
-            let src = cwd.join(path);
-            utils::symlink(&src, &dest)
-        } else {
-            utils::copy(&path, &dest);
-        }
-    } else if path.is_dir() {
-        if symlink {
-            let src = cwd.join(path);
-            utils::symlink(&src, &dest);
-        } else if let Err(e) = copy_dir_all(&path, &dest) {
+    if path.is_dir() {
+        let tmp_archive_path = config.temp_dir.join(path_filename).with_extension("zip");
+        if let Err(e) = zip_extensions::write::zip_create_from_directory(&tmp_archive_path, &path) {
             exit_with_error!(
-                "Could not copy directory '{}' to '{}': {}",
+                "Could not create zip archive from directory '{}': {}",
                 path.display(),
-                dest.display(),
                 e
-            )
-        };
+            );
+        }
+        dbg!(&tmp_archive_path);
+        path = tmp_archive_path;
+    }
+
+    if !path.is_file() {
+        exit_with_error!("File `{}` is neither a file or directory.", path.display());
+    }
+
+    if Some(OsStr::new("zip")) != path.extension() {
+        exit_with_error!("Templates should be zip files.");
+    }
+
+    // Make sure that parent of added file exists
+    let parrent = utils::parrent(&dest);
+    utils::create_dir_all(parrent);
+
+    dbg!(&dest);
+
+    if symlink {
+        let src = cwd.join(path);
+        utils::symlink(&src, &dest)
     } else {
-        exit_with_error!("File `{}` is neither file or directory.", path.display());
+        utils::copy(&path, &dest);
     }
 }
 
@@ -303,25 +288,26 @@ pub fn add_repo(cwd: PathBuf, config: Config, args: TemplateAddRepoArgs) {
     };
 
     // The zip archive will have the same name as the repo, but with the .zip extension
-    let mut archive_path = config
-        .temp_dir
-        .join(template_file_name)
-        .with_extension("zip");
+    let archive_path = match is_zip {
+        true => template_path,
+        false => config
+            .temp_dir
+            .join(template_file_name)
+            .with_extension("zip"),
+    };
 
-    if is_zip {
-        archive_path = template_path;
-    } else {
-        // Create the zip archive
-        if let Err(e) =
-            zip_extensions::write::zip_create_from_directory(&archive_path, &template_path)
-        {
-            exit_with_error!(
-                "Could not create zip archive from directory '{}': {}",
-                archive_path.display(),
-                e
-            );
-        }
-    }
+    // if !is_zip {
+    //     // Create the zip archive
+    //     if let Err(e) =
+    //         zip_extensions::write::zip_create_from_directory(&archive_path, &template_path)
+    //     {
+    //         exit_with_error!(
+    //             "Could not create zip archive from directory '{}': {}",
+    //             archive_path.display(),
+    //             e
+    //         );
+    //     }
+    // }
 
     // Add the template as a normal local template
     add_path(&cwd, &config, archive_path, false, args.force, None)

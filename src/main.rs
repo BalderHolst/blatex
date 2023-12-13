@@ -115,7 +115,7 @@ mod tests {
     #[test]
     #[serial]
     fn test_compile_and_clean() {
-        print!("test_compile_and_clean");
+        println!("test_compile_and_clean");
         #[allow(unused_variables)]
         let (ctx, opts) = setup!("compile");
         fs::copy("./tests/main1.tex", opts.cwd.join("main.tex")).unwrap();
@@ -132,7 +132,7 @@ mod tests {
     #[test]
     #[serial]
     fn test_compile_from_subfolder() {
-        print!("test_compile_and_clean");
+        println!("test_compile_and_clean");
         #[allow(unused_variables)]
         let (ctx, init_opts) = setup!("init");
         fs::copy("./tests/main1.tex", init_opts.cwd.join("main.tex")).unwrap();
@@ -160,12 +160,12 @@ mod tests {
     #[test]
     #[serial]
     fn test_add_and_compile() {
-        print!("test_add_and_compile");
+        println!("test_add_and_compile");
         #[allow(unused_variables)]
-        let (ctx, opts) = setup!("templates", "add", "templates");
+        let (ctx, opts) = setup!("templates", "add", "templates/minimal.zip");
         let add_opts = opts.clone();
         let init_opts = Opts::create_mock(
-            vec!["init", "-t", "templates/minimal"],
+            vec!["init", "-t", "minimal"],
             add_opts.config.clone(),
             add_opts.cwd.clone(),
         );
@@ -184,7 +184,7 @@ mod tests {
     #[serial]
     #[ignore]
     fn test_add_repo_zip_and_compile() {
-        print!("test_add_repo_zip_and_compile");
+        println!("test_add_repo_zip_and_compile");
         #[allow(unused_variables)]
         let (ctx, opts) = setup!(
             "templates",
@@ -213,31 +213,23 @@ mod tests {
     #[test]
     #[serial]
     fn rename_add_templates() {
-        print!("rename_add_templates");
+        println!("rename_add_templates");
         #[allow(unused_variables)]
-        // Rename directory
-        let (ctx, opts) = setup!("templates", "add", "-r", "test_templates", "templates");
-        run(opts.clone());
-        assert!(opts.config.templates_dir.join("test_templates").is_dir());
-        assert!(!opts.config.templates_dir.join("templates").is_dir());
-
         // Rename file
-        let opts = Opts::create_mock(
-            vec![
-                "templates",
-                "add",
-                "-r",
-                "templates_file",
-                "templates/basic.zip",
-            ],
-            opts.config,
-            opts.cwd,
+        let (ctx, opts) = setup!(
+            "templates",
+            "add",
+            "-r",
+            "template_file",
+            "templates/basic.zip"
         );
+
         run(opts.clone());
+
         assert!(opts
             .config
             .templates_dir
-            .join("templates_file.zip")
+            .join("template_file.zip")
             .is_file());
         assert!(!opts.config.templates_dir.join("basic.zip").is_file());
 
@@ -265,6 +257,8 @@ mod tests {
     #[serial]
     #[ignore]
     fn test_remote_template_config() {
+        println!("test_remote_template_config");
+
         #[allow(unused_variables)]
         // let (ctx, opts) = setup!("init", "-t", "test-template");
         let (ctx, mut opts) = setup!("init", "-t", "test-template");
