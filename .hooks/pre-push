@@ -1,2 +1,22 @@
-#!/usr/bin/env bash
-cargo test
+#!/bin/sh
+
+cargo fmt --check -q || {
+    echo -e "\nPlease format your code."
+    exit 1
+}
+
+echo "PASSED: Format"
+
+cargo clippy -q -- --deny warnings || {
+    echo -e "\nClippy is angry."
+    exit 1
+}
+
+echo "PASSED: Clippy"
+
+cargo test -- --include-ignored || {
+    echo -e "\nSome tests have failed"
+    exit 1
+}
+
+echo "PASSED: Tests"

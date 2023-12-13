@@ -1,3 +1,5 @@
-#!/usr/bin/env bash
-cargo fmt
-cargo clippy -- --deny warnings
+#!/bin/sh
+cargo fmt --check || {
+    echo -e "\nPlease format your files."
+    exit 1
+}
