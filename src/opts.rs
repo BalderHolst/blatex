@@ -7,7 +7,7 @@ use toml::map::Map;
 
 use crate::{config::LOCAL_CONFIG_FILE, exit_with_error};
 
-const REMOTE_TEMPLATES_OPTION: &str = "templates";
+const REMOTE_TEMPLATES_OPTION: &str = "remote_templates";
 
 #[derive(Parser, Clone)]
 pub struct Args {
