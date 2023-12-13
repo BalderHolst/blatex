@@ -48,6 +48,8 @@ pub fn clone_repo(tmp_dir: &Path, url: &str, branch: Option<&String>) -> PathBuf
                 .arg("-C")
                 .arg(&tmp_dir)
                 .arg("clone")
+                .arg("--depth")
+                .arg("1")
                 .arg("--branch")
                 .arg(b)
                 .arg(url)
