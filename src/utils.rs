@@ -30,6 +30,17 @@ pub fn replace_path_placeholders(s: &str, main_file: &Path) -> String {
     out
 }
 
+#[test]
+fn test_replace_path_placeholders() {
+    assert_eq!(
+        replace_path_placeholders(
+            "hello <main-file> is the main file. The stem is <main-stem>.",
+            &Path::new("mainfile.tex")
+        ),
+        "hello mainfile.tex is the main file. The stem is mainfile."
+    );
+}
+
 fn replace_text(s: &str, pattern: &str, value: &str) -> String {
     let parts = s.split(pattern);
     parts
