@@ -1,0 +1,44 @@
+.ie \n(.g .ds Aq \(aq
+.el .ds Aq '
+.TH blatex 1  "blatex 0.1.0" 
+.SH NAME
+blatex
+.SH SYNOPSIS
+\fBblatex\fR [\fB\-C\fR|\fB\-\-config\-path\fR] [\fB\-h\fR|\fB\-\-help\fR] [\fB\-V\fR|\fB\-\-version\fR] <\fIsubcommands\fR>
+.SH DESCRIPTION
+.SH OPTIONS
+.TP
+\fB\-C\fR, \fB\-\-config\-path\fR=\fICONFIG_PATH\fR
+Path to local configuration file
+.TP
+\fB\-h\fR, \fB\-\-help\fR
+Print help
+.TP
+\fB\-V\fR, \fB\-\-version\fR
+Print version
+.SH SUBCOMMANDS
+.TP
+blatex\-init(1)
+Initialize latex document with a template
+.TP
+blatex\-compile(1)
+Compile latex document
+.TP
+blatex\-clean(1)
+Clean temporary files
+.TP
+blatex\-log(1)
+Show errors and warnings from the last compilation
+.TP
+blatex\-templates(1)
+Commands for managing templates
+.TP
+blatex\-config(1)
+Manage blatex configuration
+.TP
+blatex\-help(1)
+Print this message or the help of the given subcommand(s)
+.SH VERSION
+v0.1.0
+.SH AUTHORS
+Balder W. Holst <balderwh@gmail.com>
