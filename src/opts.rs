@@ -50,6 +50,10 @@ pub struct InitArgs {
     /// Name of a template to use
     #[arg(short, long)]
     pub template: Option<String>,
+
+    /// Main latex entrypoint
+    #[arg(short, long)]
+    pub main: Option<String>,
 }
 
 #[derive(Clone, clap::Args)]

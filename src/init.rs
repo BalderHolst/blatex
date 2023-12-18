@@ -53,6 +53,10 @@ pub fn init(cwd: PathBuf, mut config: Config, args: InitArgs) {
         exit(0);
     }
 
+    if let Some(main_file) = args.main {
+        config.main_file = PathBuf::from(main_file);
+    }
+
     let c = utils::read_dir(&config.root).count();
     if c == 0 {
         let templates_dir = &config.templates_dir;
