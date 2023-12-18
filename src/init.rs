@@ -46,6 +46,7 @@ fn copy_directory(src: &Path, dest: &Path) {
     }
 }
 
+// TODO: Make sure that there are templates available or print error
 pub fn init(cwd: PathBuf, mut config: Config, args: InitArgs) {
     // Make sure that the folder is not already initialized
     if config.root.join(LOCAL_CONFIG_FILE).exists() {

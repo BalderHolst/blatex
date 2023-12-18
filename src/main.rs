@@ -181,6 +181,40 @@ mod tests {
     #[test]
     #[serial]
     #[ignore]
+    fn test_add_repo_branch() {
+        println!("test_add_repo_zip_and_compile");
+        #[allow(unused_variables)]
+        let (ctx, opts) = setup!(
+            "templates",
+            "add-repo",
+            "https://github.com/cainmagi/Latex-Templates",
+            "-b",
+            "elegant-report"
+        );
+        let add_opts = opts.clone();
+        let init_opts = Opts::create_mock(
+            vec![
+                "init",
+                "-t",
+                "elegant-report@Latex-Templates",
+                "-m",
+                "gReport.tex",
+            ],
+            add_opts.config.clone(),
+            add_opts.cwd.clone(),
+        );
+        run(add_opts);
+        run(init_opts);
+
+        // TODO: The mocked options do not take local config into a count. I can therefore not run
+        // the `compile` command here, eventhough it does work in a real use-case.
+
+        assert!(opts.cwd.join("gReport.pdf").exists())
+    }
+
+    #[test]
+    #[serial]
+    #[ignore]
     fn test_add_repo_zip_and_compile() {
         println!("test_add_repo_zip_and_compile");
         #[allow(unused_variables)]
