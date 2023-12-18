@@ -148,8 +148,6 @@ mod tests {
         // Go into sub directory
         compile_opts.cwd = compile_opts.cwd.join("subdir");
 
-        dbg!(&compile_opts.cwd, &compile_opts.config.root);
-
         run(compile_opts.clone());
         assert!(!compile_opts.cwd.join("main.log").exists());
         assert!(!compile_opts.cwd.join("main.pdf").exists());
@@ -264,7 +262,6 @@ mod tests {
         let (ctx, mut opts) = setup!("init", "-t", "test-template");
 
         let config_dir = opts.config.config_file.parent().unwrap();
-        dbg!(&config_dir);
         fs::create_dir_all(config_dir).unwrap();
 
         opts.config.remote_templates.insert(

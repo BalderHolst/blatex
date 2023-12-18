@@ -1,6 +1,6 @@
 use std::{
     collections::HashMap,
-    ffi::OsStr,
+    ffi::{OsStr, OsString},
     fs,
     path::{Path, PathBuf},
 };
@@ -184,7 +184,6 @@ fn add_path(
                 e
             );
         }
-        dbg!(&tmp_archive_path);
         path = tmp_archive_path;
     }
 
@@ -199,8 +198,6 @@ fn add_path(
     // Make sure that parent of added file exists
     let parrent = utils::parrent(&dest);
     utils::create_dir_all(parrent);
-
-    dbg!(&dest);
 
     if symlink {
         let src = cwd.join(path);
@@ -254,8 +251,8 @@ fn _list_templates_recursive(dir: PathBuf, level: usize) {
 }
 
 pub fn add_repo(cwd: PathBuf, config: Config, args: TemplateAddRepoArgs) {
-    // TODO: support branches
-    let cloned_repo_root = utils::clone_repo(&config.temp_dir, args.url.as_str(), None);
+    let cloned_repo_root =
+        utils::clone_repo(&config.temp_dir, args.url.as_str(), args.branch.as_ref());
 
     let mut is_zip = false;
 
@@ -280,7 +277,10 @@ pub fn add_repo(cwd: PathBuf, config: Config, args: TemplateAddRepoArgs) {
     };
 
     let template_file_name = match template_path.file_name() {
-        Some(n) => n,
+        Some(n) => match &args.branch {
+            Some(branch) => OsString::from_iter([OsStr::new(branch), OsStr::new("@"), n]),
+            None => n.to_os_string(),
+        },
         None => exit_with_error!(
             "Could not determine template file name from path '{}'.",
             template_path.display()
@@ -290,25 +290,31 @@ pub fn add_repo(cwd: PathBuf, config: Config, args: TemplateAddRepoArgs) {
     // The zip archive will have the same name as the repo, but with the .zip extension
     let archive_path = match is_zip {
         true => template_path,
-        false => config
-            .temp_dir
-            .join(template_file_name)
-            .with_extension("zip"),
+        false => {
+            let archive_path = config
+                .temp_dir
+                .join(template_file_name)
+                .with_extension("zip");
+            if let Err(e) =
+                zip_extensions::write::zip_create_from_directory(&archive_path, &template_path)
+            {
+                exit_with_error!(
+                    "Could not create zip archive from directory '{}': {}",
+                    archive_path.display(),
+                    e
+                );
+            }
+            archive_path
+        }
     };
 
-    // if !is_zip {
-    //     // Create the zip archive
-    //     if let Err(e) =
-    //         zip_extensions::write::zip_create_from_directory(&archive_path, &template_path)
-    //     {
-    //         exit_with_error!(
-    //             "Could not create zip archive from directory '{}': {}",
-    //             archive_path.display(),
-    //             e
-    //         );
-    //     }
-    // }
-
     // Add the template as a normal local template
-    add_path(&cwd, &config, archive_path, false, args.force, None)
+    add_path(
+        &cwd,
+        &config,
+        archive_path,
+        false,
+        args.force,
+        args.rename.as_ref(),
+    )
 }

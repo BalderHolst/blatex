@@ -126,9 +126,17 @@ pub struct TemplateAddRepoArgs {
     #[clap(index = 1)]
     pub url: String,
 
+    // Branch of the repository
+    #[arg(short, long)]
+    pub branch: Option<String>,
+
     /// The path to the template file or directory within the repository
     #[arg(short, long)]
     pub path: Option<String>,
+
+    /// Rename template or file or directory
+    #[arg(short, long)]
+    pub rename: Option<String>,
 
     /// Override existing templates
     #[arg(short, long, default_value_t = false)]
