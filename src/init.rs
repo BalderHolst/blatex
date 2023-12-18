@@ -68,7 +68,8 @@ pub fn init(cwd: PathBuf, mut config: Config, args: InitArgs) {
 - add a local directory or zip file with `blatex templates add <file>`
 - add a remote directory or zip file with `blatex templates add-repo <repo>`
 - add a remote template in your configuration to download it only when needed with
-    `remote_templates."<template-name>".repo = "<url>"`"#
+    `{}."<template-name>".repo = "<url>"`"#,
+                crate::opts::REMOTE_TEMPLATES_OPTION
             )
         }
 

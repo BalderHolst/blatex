@@ -7,7 +7,7 @@ use toml::map::Map;
 
 use crate::{config::LOCAL_CONFIG_FILE, exit_with_error};
 
-const REMOTE_TEMPLATES_OPTION: &str = "remote_templates";
+pub const REMOTE_TEMPLATES_OPTION: &str = "remote_templates";
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
