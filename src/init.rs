@@ -46,7 +46,6 @@ fn copy_directory(src: &Path, dest: &Path) {
     }
 }
 
-// TODO: Make sure that there are templates available or print error
 pub fn init(cwd: PathBuf, mut config: Config, args: InitArgs) {
     // Make sure that the folder is not already initialized
     if config.root.join(LOCAL_CONFIG_FILE).exists() {
@@ -62,6 +61,16 @@ pub fn init(cwd: PathBuf, mut config: Config, args: InitArgs) {
     if c == 0 {
         let templates_dir = &config.templates_dir;
         let templates = templates::get_templates(templates_dir.as_path(), &config.remote_templates);
+
+        if templates.is_empty() {
+            exit_with_error!(
+                r#"No templates found. There are three ways to add templates:
+- add a local directory or zip file with `blatex templates add <file>`
+- add a remote directory or zip file with `blatex templates add-repo <repo>`
+- add a remote template in your configuration to download it only when needed with
+    `remote_templates."<template-name>".repo = "<url>"`"#
+            )
+        }
 
         let template_path = match args.template {
             Some(t) => match templates::search_templates(&t, &templates) {
