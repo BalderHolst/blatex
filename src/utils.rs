@@ -66,7 +66,7 @@ pub fn clone_repo(tmp_dir: &Path, url: &str, branch: Option<&String>) -> PathBuf
         }
     }
 
-    utils::create_dir(&tmp_dir);
+    utils::create_dir_all(&tmp_dir);
 
     // Clone the repo inside the temporary directory
     let status = {

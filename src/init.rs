@@ -59,8 +59,7 @@ pub fn init(cwd: PathBuf, mut config: Config, args: InitArgs) {
 
     let c = utils::read_dir(&config.root).count();
     if c == 0 {
-        let templates_dir = &config.templates_dir;
-        let templates = templates::get_templates(templates_dir.as_path(), &config.remote_templates);
+        let templates = templates::get_templates(&config);
 
         if templates.is_empty() {
             exit_with_error!(
@@ -82,6 +81,7 @@ pub fn init(cwd: PathBuf, mut config: Config, args: InitArgs) {
                 }
                 None => exit_with_error!("Could not find template '{}'.", t),
             },
+
             None => {
                 // Create fuzzy finder items
                 let items: Vec<Item<&Template>> = templates
@@ -103,7 +103,10 @@ pub fn init(cwd: PathBuf, mut config: Config, args: InitArgs) {
                         config = remote.config.clone();
                         clone_remote_template(&config.temp_dir, name, remote)
                     }
-                    None => exit_with_error!("No template chosen."),
+                    None => {
+                        println!("");
+                        exit_with_error!("No template chosen.")
+                    }
                 }
             }
         };

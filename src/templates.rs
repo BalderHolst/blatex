@@ -1,5 +1,4 @@
 use std::{
-    collections::HashMap,
     ffi::{OsStr, OsString},
     fs,
     path::{Path, PathBuf},
@@ -39,19 +38,13 @@ impl ToString for Template {
     }
 }
 
-pub fn get_templates<P>(
-    templates_dir: P,
-    remote_templates: &HashMap<String, RemoteTemplate>,
-) -> Vec<Template>
-where
-    P: AsRef<std::path::Path>,
-{
+pub fn get_templates(config: &Config) -> Vec<Template> {
     // Get the local templates
-    let mut templates: Vec<Template> = get_local_templates(&templates_dir)
+    let mut templates: Vec<Template> = get_local_templates(&config.templates_dir)
         .iter()
         .map(|t| {
             Template::Local(
-                t.strip_prefix(&templates_dir)
+                t.strip_prefix(&config.templates_dir)
                     .expect("local templates should always be in the template directory")
                     .to_path_buf(),
             )
@@ -59,10 +52,15 @@ where
         .collect();
 
     // Insert the remote templates
-    templates.extend(remote_templates.iter().map(|(n, t)| Template::Remote {
-        name: n.clone(),
-        remote: Box::new(t.clone()),
-    }));
+    templates.extend(
+        config
+            .remote_templates
+            .iter()
+            .map(|(n, t)| Template::Remote {
+                name: n.clone(),
+                remote: Box::new(t.clone()),
+            }),
+    );
 
     templates
 }
@@ -72,6 +70,11 @@ where
     P: AsRef<std::path::Path>,
 {
     let mut templates = Vec::new();
+
+    if !templates_dir.as_ref().exists() {
+        return templates;
+    }
+
     for file in utils::read_dir(templates_dir.as_ref()) {
         let path = utils::handle_file_iter(file).path();
         if path.is_file() {
@@ -157,12 +160,10 @@ fn add_path(
             };
             exit_with_error!("{e}");
         }
-        {
-            if dest.is_dir() {
-                utils::remove_dir_all(dest.as_path());
-            } else {
-                utils::remove_file(dest.as_path());
-            }
+        if dest.is_dir() {
+            utils::remove_dir_all(dest.as_path());
+        } else {
+            utils::remove_file(dest.as_path());
         }
     }
 
@@ -192,7 +193,7 @@ fn add_path(
     }
 
     if Some(OsStr::new("zip")) != path.extension() {
-        exit_with_error!("Templates should be zip files.");
+        exit_with_error!("Templates should be zip files or directories.");
     }
 
     // Make sure that parent of added file exists
@@ -208,7 +209,7 @@ fn add_path(
 }
 
 pub fn list_templates(config: Config) {
-    for t in get_templates(&config.templates_dir, &config.remote_templates) {
+    for t in get_templates(&config) {
         println!("{}", t.to_string())
     }
 }

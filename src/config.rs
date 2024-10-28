@@ -50,7 +50,7 @@ fn create_local_configuration_string(config: &Config) -> String {
 main_file = "{main_file}"
 compile_cmd = "{compile_cmd}"
 clean_cmd = "{clean_cmd}"
-                                "#,
+"#,
         main_file = config.main_file.display(),
         compile_cmd = config.compile_cmd,
         clean_cmd = config.clean_cmd
