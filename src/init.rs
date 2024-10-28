@@ -104,7 +104,7 @@ pub fn init(cwd: PathBuf, mut config: Config, args: InitArgs) {
                         clone_remote_template(&config.temp_dir, name, remote)
                     }
                     None => {
-                        println!("");
+                        println!();
                         exit_with_error!("No template chosen.")
                     }
                 }

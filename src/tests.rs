@@ -42,16 +42,18 @@ impl Drop for TestContext {
 fn setup(args: Vec<&str>) -> (TestContext, Opts) {
     let cwd = PathBuf::from(TEST_DIR).join(CWD_DIR);
 
-    let mut config = Config::default();
-    config.root = cwd.clone();
-    config.data_dir = PathBuf::from(TEST_DIR.to_string() + DATA_DIR);
-    config.config_file = PathBuf::from(TEST_DIR.to_string() + CONFIG_DIR + "config.toml");
-    config.templates_dir = PathBuf::from(TEST_DIR.to_string() + TEMPLATES_DIR);
-    config.temp_dir = PathBuf::from(TEST_DIR.to_string() + TEMP_DIR);
+    let mut config = Config {
+        root: cwd.clone(),
+        data_dir: PathBuf::from(TEST_DIR.to_string() + DATA_DIR),
+        config_file: PathBuf::from(TEST_DIR.to_string() + CONFIG_DIR + "config.toml"),
+        templates_dir: PathBuf::from(TEST_DIR.to_string() + TEMPLATES_DIR),
+        temp_dir: PathBuf::from(TEST_DIR.to_string() + TEMP_DIR),
+        ..Default::default()
+    };
 
     // Silence latex compilation
-    config.compile_cmd = config.compile_cmd + " > /dev/null";
-    config.clean_cmd = config.clean_cmd + " > /dev/null";
+    config.compile_cmd += " > /dev/null";
+    config.clean_cmd += " > /dev/null";
 
     (
         TestContext::new(&config),

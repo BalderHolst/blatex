@@ -1,5 +1,6 @@
 use std::{
     ffi::{OsStr, OsString},
+    fmt::Display,
     fs,
     path::{Path, PathBuf},
 };
@@ -24,11 +25,12 @@ pub enum Template {
     },
 }
 
-impl ToString for Template {
-    fn to_string(&self) -> String {
+impl Display for Template {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Template::Local(p) => p.to_str().unwrap_or("invalid-file-name").to_string(),
-            Template::Remote { name, remote: _ } => format!(
+            Template::Local(p) => p.to_str().unwrap_or("invalid-file-name").fmt(f),
+            Template::Remote { name, remote: _ } => write!(
+                f,
                 "{}{} (remote){}",
                 color::Fg(color::Magenta),
                 name,
@@ -214,7 +216,7 @@ fn add_path(
 
 pub fn list_templates(config: Config) {
     for t in get_templates(&config) {
-        println!("{}", t.to_string())
+        println!("{t}")
     }
 }
 
