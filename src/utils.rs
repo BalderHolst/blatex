@@ -6,10 +6,19 @@ use std::{
 };
 
 #[macro_export]
+#[cfg(not(test))]
 macro_rules! exit_with_error {
     ($($x:expr),+) => {{
         println!($($x),+);
         std::process::exit(1)
+    }}
+}
+
+#[macro_export]
+#[cfg(test)]
+macro_rules! exit_with_error {
+    ($($x:expr),+) => {{
+        panic!($($x),+);
     }}
 }
 

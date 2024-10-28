@@ -157,6 +157,11 @@ pub fn init(cwd: PathBuf, mut config: Config, args: InitArgs) {
                         }
                     })
                     .collect();
+
+                if items.is_empty() {
+                    exit_with_error!("No files found in template.");
+                }
+
                 println!(
                     "Could not find main file '{}' please choose one.",
                     config.main_file.display()
