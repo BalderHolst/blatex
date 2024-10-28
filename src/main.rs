@@ -28,7 +28,8 @@ fn run(opts: Opts) {
                 None => opts.config.main_file,
             },
         ),
-        Command::Templates(args) => match args.template_command {
+        Command::Add(args) => templates::add_paths(opts.cwd, opts.config, args),
+        Command::Template(args) => match args.template_command {
             opts::TemplateCommand::Add(args) => templates::add_paths(opts.cwd, opts.config, args),
             opts::TemplateCommand::AddRepo(args) => {
                 templates::add_repo(opts.cwd, opts.config, args)

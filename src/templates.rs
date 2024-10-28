@@ -135,6 +135,10 @@ fn add_path(
     force: bool,
     rename: Option<&String>,
 ) {
+    if path.is_relative() {
+        path = cwd.join(path);
+    }
+
     let path_filename = match path.file_name() {
         Some(n) => n,
         None => exit_with_error!("Cannot find file name for path '{}'.", path.display()),

@@ -39,7 +39,10 @@ pub enum Command {
     Log(LogArgs),
 
     /// Commands for managing templates
-    Templates(TemplateArgs),
+    Template(TemplateArgs),
+
+    /// Alias for `template add`
+    Add(TemplateAddArgs),
 
     /// Manage blatex configuration
     Config(ConfigArgs),
@@ -328,10 +331,7 @@ impl Config {
         if config_path.exists() {
             Some((dir.to_owned(), config_path))
         } else {
-            let parrent = match dir.parent() {
-                Some(p) => p.to_path_buf(),
-                None => return None,
-            };
+            let parrent = dir.parent()?.to_path_buf();
             Self::find_local_config(&parrent)
         }
     }
